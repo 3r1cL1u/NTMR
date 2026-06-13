@@ -1,12 +1,1194 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nitro Math & Racing</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nitro Math & Racing</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; width: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      overflow: hidden;
+    }
+    button { cursor: pointer; font-family: inherit; border: none; outline: none; }
+    input { font-family: inherit; outline: none; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #161b22; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" data-presets="react,typescript">
+    const { createContext, useContext, useState, useCallback, useRef, useEffect } = React;
+    const { createRoot } = ReactDOM;
+
+    // ─── Types ────────────────────────────────────────────────
+    // BoostTier: 'light' | 'mid' | 'extreme'
+    // FixTier: 'light' | 'mid' | 'extreme'
+    // RaceMode: 'math' | 'typing'
+    // GamePhase: 'countdown' | 'racing' | 'finished'
+    // Screen: 'menu' | 'lobby' | 'race' | 'garage' | 'shop' | 'achievements'
+
+    // ─── Constants ────────────────────────────────────────────
+    const STARTING_COINS = 100;
+    const RACE_REWARD_COINS = 50;
+    const WIN_REWARD_COINS = 150;
+    const RACE_REWARD_XP = 20;
+    const WIN_REWARD_XP = 50;
+    const MAX_DAMAGE = 100;
+    const LAPS_TO_WIN = 3;
+    const TRACK_LENGTH = 1000;
+    const PLAYER_NAME = 'You';
+
+    const CAR_COLORS = [
+      { name: 'Racing Red', hex: '#e23636', cost: 0 },
+      { name: 'Speed Blue', hex: '#1a6be3', cost: 0 },
+      { name: 'Midnight Black', hex: '#1a1a1a', cost: 200 },
+      { name: 'Neon Green', hex: '#39d152', cost: 300 },
+      { name: 'Sunset Orange', hex: '#e37e1a', cost: 350 },
+      { name: 'Purple Storm', hex: '#8e44ad', cost: 400 },
+      { name: 'Gold Rush', hex: '#f1c40f', cost: 500 },
+      { name: 'Cyber Pink', hex: '#e84393', cost: 600 },
+      { name: 'Ice White', hex: '#ecf0f1', cost: 250 },
+      { name: 'Toxic Yellow', hex: '#f1c40f', cost: 450 },
+    ];
+
+    const BOOSTS = [
+      { tier: 'light', name: 'Light Boost', desc: '+10 fuel in math, skip 2 words typing', cost: 50, mathFuelBonus: 10, typingSkipWords: 2 },
+      { tier: 'mid', name: 'Mid Boost', desc: '+25 fuel in math, skip 5 words typing', cost: 150, mathFuelBonus: 25, typingSkipWords: 5 },
+      { tier: 'extreme', name: 'Extreme Boost', desc: '+50 fuel in math, skip 10 words typing', cost: 400, mathFuelBonus: 50, typingSkipWords: 10 },
+    ];
+
+    const FIXES = [
+      { tier: 'light', name: 'Light Fix', desc: 'Repair 20 damage', cost: 30, repairAmount: 20 },
+      { tier: 'mid', name: 'Mid Fix', desc: 'Repair 50 damage', cost: 80, repairAmount: 50 },
+      { tier: 'extreme', name: 'Extreme Fix', desc: 'Repair 100 damage', cost: 200, repairAmount: 100 },
+    ];
+
+    function defaultInventory() {
+      return { boostLight: 0, boostMid: 0, boostExtreme: 0, fixLight: 0, fixMid: 0, fixExtreme: 0 };
+    }
+
+    function createAccount(username, password) {
+      return {
+        username, password,
+        coins: STARTING_COINS, xp: 0, achievements: [],
+        inventory: defaultInventory(),
+        car: { color: '#e23636', damage: 0 },
+        stats: { racesDone: 0, wins: 0 },
+        unlockedColors: ['#e23636', '#1a6be3'],
+      };
+    }
+
+    const BOT_CONFIGS = [
+      { name: 'Speedy Sam', skill: 0.7, color: '#e67e22' },
+      { name: 'Nitro Nick', skill: 0.85, color: '#2ecc71' },
+      { name: 'Tank Tina', skill: 0.5, color: '#9b59b6' },
+      { name: 'Bash Bob', skill: 0.6, color: '#e74c3c' },
+    ];
+
+    const ACHIEVEMENTS = [
+      { id: 'first_race', name: 'First Race', desc: 'Complete your first race', check: a => a.stats.racesDone >= 1, reward: 50 },
+      { id: 'ten_races', name: 'Getting Started', desc: 'Complete 10 races', check: a => a.stats.racesDone >= 10, reward: 200 },
+      { id: 'fifty_races', name: 'Veteran Racer', desc: 'Complete 50 races', check: a => a.stats.racesDone >= 50, reward: 500 },
+      { id: 'first_win', name: 'First Victory', desc: 'Win your first race', check: a => a.stats.wins >= 1, reward: 100 },
+      { id: 'ten_wins', name: 'Champion', desc: 'Win 10 races', check: a => a.stats.wins >= 10, reward: 500 },
+      { id: 'twenty_wins', name: 'Legend', desc: 'Win 20 races', check: a => a.stats.wins >= 20, reward: 1000 },
+      { id: 'hundred_xp', name: 'Learning', desc: 'Earn 100 XP', check: a => a.xp >= 100, reward: 200 },
+      { id: 'thousand_xp', name: 'Scholar', desc: 'Earn 1000 XP', check: a => a.xp >= 1000, reward: 1000 },
+      { id: 'no_damage', name: 'Perfect Run', desc: 'Win a race without taking damage', check: () => false, reward: 300 },
+      { id: 'five_achievements', name: 'Collector', desc: 'Unlock 5 achievements', check: a => a.achievements.length >= 5, reward: 400 },
+    ];
+
+    // ─── Storage ──────────────────────────────────────────────
+    const ACCOUNTS_KEY = 'nitro_accounts';
+    const CURRENT_KEY = 'nitro_current';
+
+    function getAccounts() {
+      const raw = localStorage.getItem(ACCOUNTS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveAccounts(accounts) {
+      localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+    }
+
+    function getCurrentUsername() {
+      return localStorage.getItem(CURRENT_KEY);
+    }
+
+    function setCurrentUsername(username) {
+      localStorage.setItem(CURRENT_KEY, username);
+    }
+
+    function clearCurrentUsername() {
+      localStorage.removeItem(CURRENT_KEY);
+    }
+
+    function findAccount(username) {
+      return getAccounts().find(a => a.username === username);
+    }
+
+    function updateAccount(username, updater) {
+      const accounts = getAccounts();
+      const idx = accounts.findIndex(a => a.username === username);
+      if (idx === -1) return null;
+      const updated = updater(accounts[idx]);
+      accounts[idx] = updated;
+      saveAccounts(accounts);
+      return updated;
+    }
+
+    function getCurrentAccount() {
+      const username = getCurrentUsername();
+      if (!username) return null;
+      return findAccount(username) ?? null;
+    }
+
+    function simpleHash(s) {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) {
+        const c = s.charCodeAt(i);
+        h = ((h << 5) - h) + c;
+        h = h & h;
+      }
+      return 'h' + Math.abs(h).toString(36);
+    }
+
+    function registerAccount(username, password) {
+      if (username.length < 2) return 'Username must be at least 2 characters';
+      if (password.length < 3) return 'Password must be at least 3 characters';
+      if (findAccount(username)) return 'Username already taken';
+      const account = createAccount(username, simpleHash(password));
+      const accounts = getAccounts();
+      accounts.push(account);
+      saveAccounts(accounts);
+      return null;
+    }
+
+    function loginAccount(username, password) {
+      const account = findAccount(username);
+      if (!account) return 'Account not found';
+      if (account.password !== simpleHash(password)) return 'Wrong password';
+      setCurrentUsername(username);
+      return null;
+    }
+
+    // ─── AuthContext ──────────────────────────────────────────
+    const AuthContext = createContext(null);
+
+    function AuthProvider({ children }) {
+      const [account, setAccount] = useState(() => {
+        const username = getCurrentUsername();
+        if (!username) return null;
+        return findAccount(username) ?? null;
+      });
+
+      const refreshAccount = useCallback(() => {
+        const username = getCurrentUsername();
+        if (!username) { setAccount(null); return; }
+        setAccount(findAccount(username) ?? null);
+      }, []);
+
+      const login = useCallback((username, password) => {
+        const err = loginAccount(username, password);
+        if (err) return err;
+        refreshAccount();
+        return null;
+      }, [refreshAccount]);
+
+      const register = useCallback((username, password) => {
+        const err = registerAccount(username, password);
+        if (err) return err;
+        setCurrentUsername(username);
+        refreshAccount();
+        return null;
+      }, [refreshAccount]);
+
+      const logout = useCallback(() => {
+        clearCurrentUsername();
+        setAccount(null);
+      }, []);
+
+      const addXp = useCallback((amount) => {
+        const username = getCurrentUsername();
+        if (!username) return;
+        updateAccount(username, (a) => {
+          a.xp += amount;
+          for (const ach of ACHIEVEMENTS) {
+            if (!a.achievements.includes(ach.id) && ach.check(a)) {
+              a.achievements.push(ach.id);
+              a.coins += ach.reward;
+            }
+          }
+          return a;
+        });
+        refreshAccount();
+      }, [refreshAccount]);
+
+      const addCoins = useCallback((amount) => {
+        const username = getCurrentUsername();
+        if (!username) return;
+        updateAccount(username, (a) => {
+          a.coins += amount;
+          return a;
+        });
+        refreshAccount();
+      }, [refreshAccount]);
+
+      return (
+        React.createElement(AuthContext.Provider, { value: { account, login, register, logout, refreshAccount, addXp, addCoins } },
+          children
+        )
+      );
+    }
+
+    function useAuth() {
+      const ctx = useContext(AuthContext);
+      if (!ctx) throw new Error('useAuth must be inside AuthProvider');
+      return ctx;
+    }
+
+    // ─── Pages ────────────────────────────────────────────────
+
+    // LoginPage
+    function LoginPage() {
+      const { login, register } = useAuth();
+      const [username, setUsername] = useState('');
+      const [password, setPassword] = useState('');
+      const [error, setError] = useState('');
+      const [isRegister, setIsRegister] = useState(false);
+
+      async function handleSubmit(e) {
+        e.preventDefault();
+        setError('');
+        if (isRegister) {
+          const err = register(username, password);
+          if (err) setError(err);
+        } else {
+          const err = login(username, password);
+          if (err) setError(err);
+        }
+      }
+
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
+          <div style={{ background: '#161b22', borderRadius: 12, padding: 40, width: 380, border: '1px solid #30363d' }}>
+            <h1 style={{ fontSize: 28, fontWeight: 800, textAlign: 'center', marginBottom: 4, color: '#f0f6fc' }}>Nitro Math & Racing</h1>
+            <p style={{ textAlign: 'center', color: '#8b949e', marginBottom: 30, fontSize: 14 }}>Race. Answer. Win.</p>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', marginBottom: 6, color: '#c9d1d9', fontSize: 14, fontWeight: 600 }}>Username</label>
+                <input
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 15 }}
+                  placeholder="Enter username"
+                />
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', marginBottom: 6, color: '#c9d1d9', fontSize: 14, fontWeight: 600 }}>Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 15 }}
+                  placeholder="Enter password"
+                />
+              </div>
+              {error && <p style={{ color: '#f85149', fontSize: 13, marginBottom: 12 }}>{error}</p>}
+              <button type="submit" style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#238636', color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
+                {isRegister ? 'Create Account' : 'Sign In'}
+              </button>
+            </form>
+            <button onClick={() => { setIsRegister(!isRegister); setError(''); }} style={{ width: '100%', padding: '10px', borderRadius: 8, background: 'transparent', color: '#58a6ff', fontSize: 14, border: '1px solid #30363d' }}>
+              {isRegister ? 'Already have an account? Sign in' : 'New here? Create account'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // MenuPage
+    function MenuPage({ onNavigate }) {
+      const { account, logout } = useAuth();
+
+      const navItems = [
+        { label: 'Race', target: 'lobby', desc: 'Compete in a race' },
+        { label: 'Garage', target: 'garage', desc: 'Fix and customize your car' },
+        { label: 'Shop', target: 'shop', desc: 'Buy boosts, repairs, and colors' },
+        { label: 'Achievements', target: 'achievements', desc: 'View your progress' },
+      ];
+
+      const btnStyle = {
+        width: '100%', padding: '16px 24px', borderRadius: 10, background: '#21262d',
+        color: '#e6edf3', fontSize: 16, fontWeight: 700, textAlign: 'left',
+        border: '1px solid #30363d', transition: 'background 0.15s',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      };
+
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
+          <div style={{ width: 420 }}>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <h1 style={{ fontSize: 32, fontWeight: 800, color: '#f0f6fc' }}>Nitro Math & Racing</h1>
+              <p style={{ color: '#8b949e', marginTop: 4, fontSize: 14 }}>Welcome, {account?.username}</p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 12 }}>
+                <span style={{ color: '#f1c40f', fontWeight: 700 }}>{account?.coins ?? 0} coins</span>
+                <span style={{ color: '#58a6ff', fontWeight: 700 }}>{account?.xp ?? 0} XP</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {navItems.map(item => (
+                <button key={item.target} style={btnStyle} onClick={() => onNavigate(item.target)}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#30363d')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#21262d')}
+                >
+                  <span>{item.label}</span>
+                  <span style={{ color: '#8b949e', fontSize: 13, fontWeight: 400 }}>{item.desc}</span>
+                </button>
+              ))}
+            </div>
+            <button onClick={logout} style={{ width: '100%', padding: '12px', borderRadius: 8, background: 'transparent', color: '#f85149', fontSize: 14, border: '1px solid #30363d', marginTop: 20 }}>
+              Sign Out
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // LobbyPage
+    function LobbyPage({ mode, setMode, onStart, onBack }) {
+      const { account } = useAuth();
+
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
+          <div style={{ width: 480 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, textAlign: 'center', marginBottom: 24, color: '#f0f6fc' }}>Race Lobby</h2>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 24, justifyContent: 'center' }}>
+              <button onClick={() => setMode('math')} style={{
+                padding: '12px 32px', borderRadius: 8, fontWeight: 700, fontSize: 15,
+                background: mode === 'math' ? '#238636' : '#21262d',
+                color: '#e6edf3', border: '1px solid #30363d',
+              }}>Math Mode</button>
+              <button onClick={() => setMode('typing')} style={{
+                padding: '12px 32px', borderRadius: 8, fontWeight: 700, fontSize: 15,
+                background: mode === 'typing' ? '#238636' : '#21262d',
+                color: '#e6edf3', border: '1px solid #30363d',
+              }}>Typing Mode</button>
+            </div>
+            <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d', marginBottom: 24 }}>
+              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Grid (5 spots)</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', background: '#0d1117', borderRadius: 6, border: '1px solid #238636' }}>
+                  <span style={{ width: 24, height: 24, borderRadius: '50%', background: account?.car.color ?? '#e23636', border: '2px solid #fff' }} />
+                  <span style={{ fontWeight: 700, color: '#f0f6fc' }}>{PLAYER_NAME}</span>
+                  <span style={{ marginLeft: 'auto', color: '#8b949e', fontSize: 13 }}>You</span>
+                </div>
+                {BOT_CONFIGS.map((bot, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', background: '#0d1117', borderRadius: 6 }}>
+                    <span style={{ width: 24, height: 24, borderRadius: '50%', background: bot.color, border: '2px solid #30363d' }} />
+                    <span style={{ color: '#e6edf3' }}>{bot.name}</span>
+                    <span style={{ marginLeft: 'auto', color: '#8b949e', fontSize: 13 }}>{Math.round(bot.skill * 100)}% skill</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={onBack} style={{ flex: 1, padding: '14px', borderRadius: 8, background: '#21262d', color: '#e6edf3', fontSize: 15, fontWeight: 600, border: '1px solid #30363d' }}>
+                Back
+              </button>
+              <button onClick={onStart} style={{ flex: 2, padding: '14px', borderRadius: 8, background: '#238636', color: '#fff', fontSize: 16, fontWeight: 800 }}>
+                Start Race
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // RacePage
+    const RACE_BASE_SPEED = 0.15;
+    const FUEL_SPEED_BONUS = 0.35;
+    const FUEL_DRAIN = 0.3;
+    const FUEL_PER_CORRECT = 25;
+    const DAMAGE_PER_WRONG = 15;
+    const DAMAGE_PER_TYPING_MISTAKE = 5;
+
+    function generateMathQuestion() {
+      const ops = ['+', '-', '*'];
+      const op = ops[Math.floor(Math.random() * ops.length)];
+      let a = 0, b = 0, answer = 0;
+      switch (op) {
+        case '+':
+          a = Math.floor(Math.random() * 50) + 1;
+          b = Math.floor(Math.random() * 50) + 1;
+          answer = a + b;
+          break;
+        case '-':
+          a = Math.floor(Math.random() * 50) + 10;
+          b = Math.floor(Math.random() * a) + 1;
+          answer = a - b;
+          break;
+        case '*':
+          a = Math.floor(Math.random() * 12) + 2;
+          b = Math.floor(Math.random() * 12) + 2;
+          answer = a * b;
+          break;
+      }
+      return { text: `${a} ${op} ${b} = ?`, answer };
+    }
+
+    const TYPING_PASSAGES = [
+      'The car raced around the track at incredible speed.',
+      'Nitro fuel gives the engine a powerful boost.',
+      'Every racer wants to cross the finish line first.',
+      'The crowd cheered as the cars approached the final lap.',
+      'A perfect start is crucial for a good race position.',
+      'The tires gripped the track through the sharp turn.',
+      'Victory belongs to the most persistent racer.',
+      'Speed alone is not enough without good control.',
+      'The checkered flag signaled the end of the race.',
+      'Each lap brings the drivers closer to the finish.',
+      'The engine roared as the green flag dropped.',
+      'Precision and timing make a champion racer.',
+      'The racetrack gleamed under the bright lights.',
+      'A pit stop can change the outcome of the entire race.',
+      'The final straight was a test of pure speed and will.',
+    ];
+
+    function generateTypingPassage() {
+      const text = TYPING_PASSAGES[Math.floor(Math.random() * TYPING_PASSAGES.length)];
+      return { text, words: text.split(' ') };
+    }
+
+    function RacePage({ mode, onFinish }) {
+      const { account, refreshAccount, addXp, addCoins } = useAuth();
+      const canvasRef = useRef(null);
+      const animRef = useRef(0);
+      const gameStateRef = useRef({
+        cars: [], bots: [], phase: 'countdown', countdown: 4, timer: 0,
+        question: null, typingState: null, questionTimer: 0, questionActive: false,
+        finished: false, winner: null, playerFinished: false, usedBoost: false,
+      });
+
+      const [uiState, setUiState] = useState({
+        phase: 'countdown', countdown: 4,
+        question: null,
+        typingState: null,
+        playerFuel: 0, playerDamage: 0, playerLaps: 0, playerSpeed: 0,
+        standings: [],
+        winner: null,
+      });
+
+      const inputRef = useRef(null);
+      const [answer, setAnswer] = useState('');
+      const [typingInput, setTypingInput] = useState('');
+      const hasUsedBoost = useRef(false);
+
+      function initRace() {
+        const playerColor = account?.car.color ?? '#e23636';
+        const playerDamage = account?.car.damage ?? 0;
+        const cars = [
+          { name: PLAYER_NAME, progress: 0, speed: 0, fuel: 0, damage: playerDamage, laps: 0, color: playerColor, isPlayer: true, active: true, finishTime: null },
+          ...BOT_CONFIGS.map(b => ({
+            name: b.name, progress: 0, speed: 0, fuel: 0, damage: 0, laps: 0, color: b.color, isPlayer: false, active: true, finishTime: null,
+          })),
+        ];
+        hasUsedBoost.current = false;
+        gameStateRef.current = {
+          cars, bots: BOT_CONFIGS, phase: 'countdown', countdown: 4, timer: 0,
+          question: null, typingState: null, questionTimer: 0, questionActive: false,
+          finished: false, winner: null, playerFinished: false, usedBoost: false,
+        };
+      }
+
+      function showNextQuestion() {
+        const q = generateMathQuestion();
+        gameStateRef.current.question = q;
+        gameStateRef.current.questionActive = true;
+        gameStateRef.current.questionTimer = 0;
+        setUiState(prev => ({ ...prev, question: q }));
+        setAnswer('');
+        inputRef.current?.focus();
+      }
+
+      function showTypingPassage() {
+        const { text, words } = generateTypingPassage();
+        const ts = { words, currentWordIdx: 0, typed: '', passage: text };
+        gameStateRef.current.typingState = ts;
+        gameStateRef.current.questionActive = true;
+        gameStateRef.current.questionTimer = 0;
+        setUiState(prev => ({ ...prev, typingState: ts }));
+        setTypingInput('');
+        inputRef.current?.focus();
+      }
+
+      function handleMathAnswer(value) {
+        const gs = gameStateRef.current;
+        if (!gs.question || !gs.questionActive) return;
+        const num = parseInt(value, 10);
+        const playerCar = gs.cars[0];
+        if (!playerCar) return;
+        if (num === gs.question.answer) {
+          let bonus = FUEL_PER_CORRECT;
+          if (!hasUsedBoost.current) {
+            const inv = account?.inventory;
+            if (inv) {
+              const boostItem = BOOSTS.find(b => {
+                const key = `boost${b.tier.charAt(0).toUpperCase() + b.tier.slice(1)}`;
+                return inv[key] > 0;
+              });
+              if (boostItem) {
+                bonus += boostItem.mathFuelBonus;
+                hasUsedBoost.current = true;
+              }
+            }
+          }
+          playerCar.fuel = Math.min(100, playerCar.fuel + bonus);
+        } else {
+          playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_WRONG);
+        }
+        gs.question = null;
+        gs.questionActive = false;
+        setUiState(prev => ({ ...prev, question: null }));
+        setAnswer('');
+      }
+
+      function handleTypingInput(value) {
+        const gs = gameStateRef.current;
+        const ts = gs.typingState;
+        if (!ts || !gs.questionActive) return;
+        if (value.endsWith(' ') || value.endsWith('\n')) {
+          const word = value.trim();
+          const targetWord = ts.words[ts.currentWordIdx];
+          if (!targetWord) return;
+          let boostBonus = 0;
+          if (!hasUsedBoost.current) {
+            const inv = account?.inventory;
+            if (inv) {
+              const bi = BOOSTS.find(b => {
+                const key = `boost${b.tier.charAt(0).toUpperCase() + b.tier.slice(1)}`;
+                return inv[key] > 0;
+              });
+              if (bi) { boostBonus = bi.typingSkipWords; hasUsedBoost.current = true; }
+            }
+          }
+          if (word === targetWord) {
+            const skipTo = Math.min(ts.words.length, ts.currentWordIdx + 1 + boostBonus);
+            ts.currentWordIdx = skipTo;
+            const playerCar = gs.cars[0];
+            if (playerCar) playerCar.fuel = Math.min(100, playerCar.fuel + 3);
+          } else {
+            const playerCar = gs.cars[0];
+            if (playerCar) playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_TYPING_MISTAKE);
+            ts.currentWordIdx += 1;
+          }
+          if (ts.currentWordIdx >= ts.words.length) {
+            gs.typingState = null;
+            gs.questionActive = false;
+            setUiState(prev => ({ ...prev, typingState: null }));
+            setTypingInput('');
+          } else {
+            setUiState(prev => ({ ...prev, typingState: { ...ts } }));
+            setTypingInput('');
+          }
+        } else {
+          setTypingInput(value);
+        }
+      }
+
+      function handleTypingKey(e) {
+        if (e.key === ' ' || e.key === 'Enter') e.preventDefault();
+      }
+
+      const gameLoop = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        const W = rect.width;
+        const H = rect.height;
+        const gs = gameStateRef.current;
+        const dt = 1 / 60;
+
+        if (gs.phase === 'countdown') {
+          gs.countdown -= dt;
+          if (gs.countdown <= 0) { gs.phase = 'racing'; gs.timer = 0; }
+          setUiState(prev => ({ ...prev, countdown: Math.ceil(gs.countdown), phase: 'countdown' }));
+        }
+
+        if (gs.phase === 'racing' && !gs.finished) {
+          gs.timer += dt;
+          const playerCar = gs.cars[0];
+          if (playerCar && playerCar.active) {
+            if (mode === 'math' && !gs.questionActive) {
+              gs.questionTimer += dt;
+              if (gs.questionTimer > 1.5) showNextQuestion();
+            }
+            if (mode === 'typing' && !gs.questionActive) {
+              gs.questionTimer += dt;
+              if (gs.questionTimer > 1.0) showTypingPassage();
+            }
+          }
+          for (let i = 1; i < gs.cars.length; i++) {
+            const car = gs.cars[i];
+            const bot = gs.bots[i - 1];
+            if (!car || !bot || !car.active) continue;
+            if (mode === 'math') {
+              if (Math.random() < bot.skill) {
+                car.fuel = Math.min(100, car.fuel + FUEL_PER_CORRECT * (0.5 + Math.random() * 0.5));
+              } else {
+                car.damage = Math.min(MAX_DAMAGE, car.damage + DAMAGE_PER_WRONG * (0.3 + Math.random() * 0.4));
+              }
+            } else {
+              if (Math.random() < bot.skill) {
+                car.fuel = Math.min(100, car.fuel + 2 + Math.random() * 2);
+              } else {
+                car.damage = Math.min(MAX_DAMAGE, car.damage + DAMAGE_PER_TYPING_MISTAKE * (0.5 + Math.random() * 0.5));
+              }
+            }
+          }
+          for (const car of gs.cars) {
+            if (!car.active) continue;
+            let speed = RACE_BASE_SPEED + (car.fuel / 100) * FUEL_SPEED_BONUS;
+            speed *= (1 - (car.damage / MAX_DAMAGE) * 0.7);
+            car.speed = speed;
+            car.progress += speed * dt * 0.8;
+            car.fuel = Math.max(0, car.fuel - FUEL_DRAIN * dt * (1 + car.damage / MAX_DAMAGE));
+            if (car.progress >= 1) {
+              car.progress -= 1;
+              car.laps += 1;
+              if (car.laps >= LAPS_TO_WIN) {
+                car.active = false;
+                car.finishTime = gs.timer;
+                if (car.isPlayer) gs.playerFinished = true;
+                if (!gs.winner) gs.winner = car.name;
+              }
+            }
+            if (car.damage >= MAX_DAMAGE) { car.active = false; car.finishTime = null; }
+          }
+          if (gs.cars.every(c => !c.active) || gs.cars.filter(c => c.active).length === 0) {
+            gs.finished = true;
+          }
+        }
+
+        // Render track
+        const cx = W / 2, cy = H / 2;
+        const rx = Math.min(W, H) * 0.35, ry = Math.min(W, H) * 0.2;
+        const trackWidth = Math.min(W, H) * 0.07;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#16213e';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx + trackWidth * 1.5, ry + trackWidth * 1.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx + trackWidth / 2, ry + trackWidth / 2, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = '#3a3a4e';
+        ctx.lineWidth = trackWidth;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx - trackWidth / 2, ry - trackWidth / 2, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = '#4a4a5e';
+        ctx.lineWidth = trackWidth * 0.05;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx + trackWidth / 2, ry + trackWidth / 2, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = '#5a5a6e';
+        ctx.lineWidth = trackWidth * 0.05;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const innerSx = cx + (rx - trackWidth / 2) * Math.cos(0);
+        const innerSy = cy + (ry - trackWidth / 2) * Math.sin(0);
+        const outerSx = cx + (rx + trackWidth / 2) * Math.cos(0);
+        const outerSy = cy + (ry + trackWidth / 2) * Math.sin(0);
+        for (let j = 0; j < 8; j++) {
+          const t = j / 8;
+          const p1x = innerSx + (outerSx - innerSx) * t;
+          const p1y = innerSy + (outerSy - innerSy) * t;
+          ctx.fillStyle = j % 2 === 0 ? '#fff' : '#111';
+          ctx.fillRect(p1x - 2, p1y - trackWidth * 0.2, 4, trackWidth * 0.4);
+        }
+
+        const carW = trackWidth * 0.5, carH = trackWidth * 0.25;
+        for (const car of gs.cars) {
+          if (!car.active && car.finishTime === null) continue;
+          const angle = car.progress * Math.PI * 2;
+          const carX = cx + rx * Math.cos(angle);
+          const carY = cy + ry * Math.sin(angle);
+          ctx.save();
+          ctx.translate(carX, carY);
+          ctx.rotate(angle + Math.PI / 2);
+          ctx.fillStyle = car.color;
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = 4;
+          ctx.beginPath();
+          ctx.roundRect(-carW / 2, -carH / 2, carW, carH, 3);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = car.isPlayer ? '#fff' : 'rgba(255,255,255,0.3)';
+          ctx.lineWidth = car.isPlayer ? 2 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-carW / 2, -carH / 2, carW, carH, 3);
+          ctx.stroke();
+          if (car.isPlayer) {
+            ctx.fillStyle = '#f1c40f';
+            ctx.beginPath();
+            ctx.arc(0, -carH / 2 - 4, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+          ctx.fillStyle = car.isPlayer ? '#f0f6fc' : '#8b949e';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(car.name, carX, carY + carH + 14);
+        }
+
+        if (gs.cars[0]) {
+          const p = gs.cars[0];
+          const standings = [...gs.cars]
+            .sort((a, b) => b.laps - a.laps || b.progress - a.progress)
+            .map(c => ({ name: c.name, laps: c.laps, color: c.color, isPlayer: c.isPlayer, finished: !c.active }));
+          setUiState(prev => ({ ...prev, playerFuel: p.fuel, playerDamage: p.damage, playerLaps: p.laps, playerSpeed: p.speed, standings, winner: gs.winner }));
+        }
+        animRef.current = requestAnimationFrame(gameLoop);
+      }, [mode, account]);
+
+      useEffect(() => {
+        initRace();
+        animRef.current = requestAnimationFrame(gameLoop);
+        return () => cancelAnimationFrame(animRef.current);
+      }, [mode]);
+
+      const currentStandings = uiState.standings;
+
+      function handleFinish() {
+        const playerPos = currentStandings.findIndex(s => s.isPlayer) + 1;
+        const won = playerPos === 1;
+        addXp(won ? WIN_REWARD_XP : RACE_REWARD_XP);
+        addCoins(won ? WIN_REWARD_COINS : RACE_REWARD_COINS);
+        const username = getCurrentUsername();
+        if (username) {
+          updateAccount(username, (a) => {
+            a.stats.racesDone += 1;
+            if (won) a.stats.wins += 1;
+            const playerCar = gameStateRef.current.cars[0];
+            a.car.damage = playerCar ? Math.min(MAX_DAMAGE, playerCar.damage) : 0;
+            return a;
+          });
+        }
+        refreshAccount();
+        onFinish();
+      }
+
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#0d1117' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: '#161b22', borderBottom: '1px solid #30363d' }}>
+            <span style={{ color: '#8b949e', fontSize: 13 }}>{mode === 'math' ? 'Math Mode' : 'Typing Mode'}</span>
+            <span style={{ color: '#f0f6fc', fontWeight: 700, fontSize: 15 }}>Lap {Math.min(uiState.playerLaps + 1, LAPS_TO_WIN)} / {LAPS_TO_WIN}</span>
+            <button onClick={onFinish} style={{ padding: '6px 16px', borderRadius: 6, background: '#21262d', color: '#e6edf3', fontSize: 13, border: '1px solid #30363d' }}>Quit</button>
+          </div>
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+              {uiState.phase === 'countdown' && uiState.countdown > 0 && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)' }}>
+                  <span style={{ fontSize: 96, fontWeight: 900, color: uiState.countdown <= 1 ? '#f1c40f' : '#f0f6fc' }}>{uiState.countdown}</span>
+                </div>
+              )}
+              {uiState.question && uiState.phase === 'racing' && (
+                <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#161b22', borderRadius: 10, padding: '16px 24px', border: '1px solid #30363d', textAlign: 'center', minWidth: 280 }}>
+                  <p style={{ color: '#f0f6fc', fontSize: 22, fontWeight: 700, marginBottom: 12 }}>{uiState.question.text}</p>
+                  <form onSubmit={e => { e.preventDefault(); handleMathAnswer(answer); }}>
+                    <input ref={inputRef} value={answer} onChange={e => setAnswer(e.target.value)} style={{ width: 120, padding: '8px 12px', borderRadius: 6, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 18, textAlign: 'center' }} placeholder="?" autoFocus />
+                    <button type="submit" style={{ marginLeft: 8, padding: '8px 16px', borderRadius: 6, background: '#238636', color: '#fff', fontSize: 14, fontWeight: 600 }}>Go</button>
+                  </form>
+                </div>
+              )}
+              {uiState.typingState && uiState.phase === 'racing' && (
+                <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#161b22', borderRadius: 10, padding: '16px 24px', border: '1px solid #30363d', textAlign: 'center', minWidth: 360, maxWidth: 500 }}>
+                  <p style={{ color: '#8b949e', fontSize: 14, marginBottom: 8 }}>Type the passage:</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center', marginBottom: 12 }}>
+                    {uiState.typingState.words.map((word, i) => (
+                      <span key={i} style={{
+                        padding: '2px 6px', borderRadius: 4, fontSize: 16, fontWeight: 600,
+                        color: i < uiState.typingState.currentWordIdx ? '#238636' : i === uiState.typingState.currentWordIdx ? '#f0f6fc' : '#484f58',
+                        background: i === uiState.typingState.currentWordIdx ? 'rgba(35,134,54,0.15)' : 'transparent',
+                      }}>{word}</span>
+                    ))}
+                  </div>
+                  <input ref={inputRef} value={typingInput} onChange={e => handleTypingInput(e.target.value)} onKeyDown={handleTypingKey} style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 16 }} placeholder="Type here..." autoFocus />
+                </div>
+              )}
+              {uiState.winner && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
+                  <h2 style={{ fontSize: 36, fontWeight: 900, color: uiState.winner === PLAYER_NAME ? '#f1c40f' : '#8b949e', marginBottom: 8 }}>
+                    {uiState.winner === PLAYER_NAME ? 'You Win!' : `${uiState.winner} Wins!`}
+                  </h2>
+                  <p style={{ color: '#8b949e', marginBottom: 20, fontSize: 14 }}>
+                    {currentStandings.findIndex(s => s.isPlayer) + 1}
+                    {['st','nd','rd','th'][Math.min(currentStandings.findIndex(s => s.isPlayer), 3)]} place
+                  </p>
+                  <button onClick={handleFinish} style={{ padding: '12px 32px', borderRadius: 8, background: '#238636', color: '#fff', fontSize: 16, fontWeight: 700 }}>Finish</button>
+                </div>
+              )}
+            </div>
+            <div style={{ width: 200, background: '#161b22', borderLeft: '1px solid #30363d', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #30363d' }}>
+                <p style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Your Car</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: '#8b949e' }}>Fuel</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: uiState.playerFuel > 50 ? '#39d152' : uiState.playerFuel > 20 ? '#f1c40f' : '#f85149' }}>{Math.round(uiState.playerFuel)}%</span>
+                </div>
+                <div style={{ height: 4, background: '#21262d', borderRadius: 2, marginBottom: 8 }}>
+                  <div style={{ width: `${uiState.playerFuel}%`, height: '100%', background: uiState.playerFuel > 50 ? '#39d152' : uiState.playerFuel > 20 ? '#f1c40f' : '#f85149', borderRadius: 2 }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: '#8b949e' }}>Damage</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: uiState.playerDamage > 50 ? '#f85149' : uiState.playerDamage > 20 ? '#f1c40f' : '#8b949e' }}>{Math.round(uiState.playerDamage)}%</span>
+                </div>
+                <div style={{ height: 4, background: '#21262d', borderRadius: 2 }}>
+                  <div style={{ width: `${uiState.playerDamage}%`, height: '100%', background: uiState.playerDamage > 50 ? '#f85149' : uiState.playerDamage > 20 ? '#f1c40f' : '#484f58', borderRadius: 2 }} />
+                </div>
+              </div>
+              <div style={{ flex: 1, background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #30363d', overflow: 'auto' }}>
+                <p style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Standings</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {currentStandings.map((s, i) => (
+                    <div key={s.name} style={{
+                      display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px',
+                      borderRadius: 4, background: s.isPlayer ? 'rgba(35,134,54,0.15)' : 'transparent',
+                    }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#484f58', width: 16 }}>{i + 1}</span>
+                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, border: '1px solid #30363d' }} />
+                      <span style={{ fontSize: 12, fontWeight: s.isPlayer ? 700 : 400, color: '#e6edf3', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+                      <span style={{ fontSize: 11, color: '#8b949e' }}>L{s.laps}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // GaragePage
+    function GaragePage({ onBack }) {
+      const { account, refreshAccount } = useAuth();
+      const [msg, setMsg] = useState('');
+
+      function changeColor(hex) {
+        if (!account) return;
+        const username = getCurrentUsername();
+        if (!username) return;
+        updateAccount(username, (a) => { a.car.color = hex; return a; });
+        refreshAccount();
+        setMsg('Color changed!');
+        setTimeout(() => setMsg(''), 2000);
+      }
+
+      function useFix(tier) {
+        if (!account) return;
+        const fix = FIXES.find(f => f.tier === tier);
+        if (!fix) return;
+        const key = `fix${tier.charAt(0).toUpperCase() + tier.slice(1)}`;
+        if (account.inventory[key] <= 0) {
+          setMsg(`No ${fix.name} available!`);
+          setTimeout(() => setMsg(''), 2000);
+          return;
+        }
+        if (account.car.damage <= 0) {
+          setMsg('Car already has no damage!');
+          setTimeout(() => setMsg(''), 2000);
+          return;
+        }
+        const username = getCurrentUsername();
+        if (!username) return;
+        updateAccount(username, (a) => {
+          a.inventory[key] -= 1;
+          a.car.damage = Math.max(0, a.car.damage - fix.repairAmount);
+          return a;
+        });
+        refreshAccount();
+        setMsg(`Used ${fix.name}! Repaired ${fix.repairAmount} damage.`);
+        setTimeout(() => setMsg(''), 2000);
+      }
+
+      if (!account) return null;
+
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #30363d' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#f0f6fc' }}>Garage</h2>
+            <button onClick={onBack} style={{ padding: '8px 20px', borderRadius: 6, background: '#21262d', color: '#e6edf3', fontSize: 14, border: '1px solid #30363d' }}>Back</button>
+          </div>
+          <div style={{ flex: 1, overflow: 'auto', padding: 20, maxWidth: 600, margin: '0 auto', width: '100%' }}>
+            {msg && <p style={{ color: '#39d152', fontSize: 14, marginBottom: 16, textAlign: 'center' }}>{msg}</p>}
+            <div style={{ background: '#161b22', borderRadius: 10, padding: 24, border: '1px solid #30363d', marginBottom: 20, textAlign: 'center' }}>
+              <div style={{ width: 120, height: 60, background: account.car.color, borderRadius: 10, margin: '0 auto 16px', border: '2px solid #30363d', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', width: 16, height: 8, background: '#f1c40f', borderRadius: '2px 2px 0 0' }} />
+              </div>
+              <p style={{ color: '#8b949e', fontSize: 13 }}>Damage: {Math.round(account.car.damage)}%</p>
+              <div style={{ height: 6, background: '#21262d', borderRadius: 3, marginTop: 6 }}>
+                <div style={{ width: `${account.car.damage}%`, height: '100%', background: account.car.damage > 50 ? '#f85149' : account.car.damage > 20 ? '#f1c40f' : '#39d152', borderRadius: 3 }} />
+              </div>
+            </div>
+            <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 12 }}>Repairs</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {FIXES.map(fix => {
+                  const key = `fix${fix.tier.charAt(0).toUpperCase() + fix.tier.slice(1)}`;
+                  const count = account.inventory[key];
+                  return (
+                    <div key={fix.tier} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0d1117', borderRadius: 8, border: '1px solid #30363d' }}>
+                      <div>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{fix.name}</p>
+                        <p style={{ fontSize: 12, color: '#8b949e' }}>{fix.desc} (owned: {count})</p>
+                      </div>
+                      <button onClick={() => useFix(fix.tier)} disabled={count <= 0 || account.car.damage <= 0} style={{
+                        padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+                        background: count > 0 && account.car.damage > 0 ? '#238636' : '#21262d',
+                        color: count > 0 && account.car.damage > 0 ? '#fff' : '#484f58',
+                        border: '1px solid #30363d',
+                      }}>Use</button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 12 }}>Colors</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                {CAR_COLORS.map(c => {
+                  const unlocked = account.unlockedColors.includes(c.hex);
+                  const isCurrent = account.car.color === c.hex;
+                  return (
+                    <button key={c.hex} onClick={() => unlocked && changeColor(c.hex)} disabled={!unlocked || isCurrent} style={{
+                      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                      borderRadius: 8, background: isCurrent ? 'rgba(35,134,54,0.2)' : '#0d1117',
+                      border: isCurrent ? '1px solid #238636' : '1px solid #30363d',
+                      cursor: unlocked && !isCurrent ? 'pointer' : 'default',
+                      opacity: unlocked ? 1 : 0.5,
+                    }}>
+                      <span style={{ width: 24, height: 24, borderRadius: '50%', background: c.hex, border: '2px solid #30363d' }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: isCurrent ? '#39d152' : '#e6edf3' }}>{c.name}{!unlocked && ` (${c.cost}c)`}{isCurrent && ' (current)'}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ShopPage
+    function ShopPage({ onBack }) {
+      const { account, refreshAccount } = useAuth();
+      const [msg, setMsg] = useState('');
+
+      function buyBoost(tier) {
+        if (!account) return;
+        const boost = BOOSTS.find(b => b.tier === tier);
+        if (!boost) return;
+        if (account.coins < boost.cost) { setMsg('Not enough coins!'); setTimeout(() => setMsg(''), 2000); return; }
+        const key = `boost${tier.charAt(0).toUpperCase() + tier.slice(1)}`;
+        const username = getCurrentUsername();
+        if (!username) return;
+        updateAccount(username, (a) => { a.coins -= boost.cost; a.inventory[key] += 1; return a; });
+        refreshAccount();
+        setMsg(`Bought ${boost.name}!`);
+        setTimeout(() => setMsg(''), 2000);
+      }
+
+      function buyFix(tier) {
+        if (!account) return;
+        const fix = FIXES.find(f => f.tier === tier);
+        if (!fix) return;
+        if (account.coins < fix.cost) { setMsg('Not enough coins!'); setTimeout(() => setMsg(''), 2000); return; }
+        const key = `fix${tier.charAt(0).toUpperCase() + tier.slice(1)}`;
+        const username = getCurrentUsername();
+        if (!username) return;
+        updateAccount(username, (a) => { a.coins -= fix.cost; a.inventory[key] += 1; return a; });
+        refreshAccount();
+        setMsg(`Bought ${fix.name}!`);
+        setTimeout(() => setMsg(''), 2000);
+      }
+
+      function buyColor(hex, cost) {
+        if (!account) return;
+        if (account.unlockedColors.includes(hex)) { setMsg('Already owned!'); setTimeout(() => setMsg(''), 2000); return; }
+        if (account.coins < cost) { setMsg('Not enough coins!'); setTimeout(() => setMsg(''), 2000); return; }
+        const username = getCurrentUsername();
+        if (!username) return;
+        updateAccount(username, (a) => { a.coins -= cost; a.unlockedColors.push(hex); return a; });
+        refreshAccount();
+        setMsg('Color unlocked!');
+        setTimeout(() => setMsg(''), 2000);
+      }
+
+      if (!account) return null;
+
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #30363d' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#f0f6fc' }}>Shop</h2>
+            <span style={{ color: '#f1c40f', fontWeight: 700, fontSize: 15 }}>{account.coins} coins</span>
+          </div>
+          <div style={{ flex: 1, overflow: 'auto', padding: 20, maxWidth: 600, margin: '0 auto', width: '100%' }}>
+            <button onClick={onBack} style={{ padding: '8px 20px', borderRadius: 6, background: '#21262d', color: '#e6edf3', fontSize: 14, border: '1px solid #30363d', marginBottom: 16 }}>Back</button>
+            {msg && <p style={{ color: '#39d152', fontSize: 14, marginBottom: 16, textAlign: 'center' }}>{msg}</p>}
+            <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 8 }}>Boosts</h3>
+              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>More fuel in math mode, skip words in typing mode.</p>
+              {BOOSTS.map(boost => (
+                <div key={boost.tier} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0d1117', borderRadius: 8, border: '1px solid #30363d', marginBottom: 8 }}>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{boost.name}</p>
+                    <p style={{ fontSize: 12, color: '#8b949e' }}>{boost.desc}</p>
+                  </div>
+                  <button onClick={() => buyBoost(boost.tier)} disabled={account.coins < boost.cost} style={{
+                    padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+                    background: account.coins >= boost.cost ? '#238636' : '#21262d',
+                    color: account.coins >= boost.cost ? '#fff' : '#484f58',
+                    border: '1px solid #30363d',
+                  }}>{boost.cost}c</button>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 8 }}>Repair Kits</h3>
+              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>Fix car damage from wrong answers.</p>
+              {FIXES.map(fix => (
+                <div key={fix.tier} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0d1117', borderRadius: 8, border: '1px solid #30363d', marginBottom: 8 }}>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{fix.name}</p>
+                    <p style={{ fontSize: 12, color: '#8b949e' }}>{fix.desc}</p>
+                  </div>
+                  <button onClick={() => buyFix(fix.tier)} disabled={account.coins < fix.cost} style={{
+                    padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+                    background: account.coins >= fix.cost ? '#238636' : '#21262d',
+                    color: account.coins >= fix.cost ? '#fff' : '#484f58',
+                    border: '1px solid #30363d',
+                  }}>{fix.cost}c</button>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 8 }}>Car Colors</h3>
+              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>Customize your Indy 500 racer.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                {CAR_COLORS.filter(c => c.cost > 0).map(c => {
+                  const owned = account.unlockedColors.includes(c.hex);
+                  return (
+                    <button key={c.hex} onClick={() => buyColor(c.hex, c.cost)} disabled={owned || account.coins < c.cost} style={{
+                      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                      borderRadius: 8, background: '#0d1117',
+                      border: owned ? '1px solid #238636' : '1px solid #30363d',
+                      opacity: owned ? 0.6 : account.coins >= c.cost ? 1 : 0.4,
+                    }}>
+                      <span style={{ width: 24, height: 24, borderRadius: '50%', background: c.hex, border: '2px solid #30363d' }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: owned ? '#39d152' : '#e6edf3' }}>{owned ? 'Owned' : `${c.name} (${c.cost}c)`}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // AchievementsPage
+    function AchievementsPage({ onBack }) {
+      const { account } = useAuth();
+      if (!account) return null;
+
+      return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #30363d' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#f0f6fc' }}>Achievements</h2>
+            <span style={{ color: '#58a6ff', fontWeight: 700, fontSize: 15 }}>{account.xp} XP</span>
+          </div>
+          <div style={{ flex: 1, overflow: 'auto', padding: 20, maxWidth: 600, margin: '0 auto', width: '100%' }}>
+            <button onClick={onBack} style={{ padding: '8px 20px', borderRadius: 6, background: '#21262d', color: '#e6edf3', fontSize: 14, border: '1px solid #30363d', marginBottom: 16 }}>Back</button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {ACHIEVEMENTS.map(ach => {
+                const unlocked = account.achievements.includes(ach.id);
+                return (
+                  <div key={ach.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 10,
+                    background: unlocked ? 'rgba(35,134,54,0.1)' : '#161b22',
+                    border: unlocked ? '1px solid #238636' : '1px solid #30363d',
+                    opacity: unlocked ? 1 : 0.6,
+                  }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: '50%', background: unlocked ? '#238636' : '#21262d',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 16, fontWeight: 900, color: unlocked ? '#fff' : '#484f58', flexShrink: 0,
+                    }}>{unlocked ? ach.reward : '?'}</div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 15, fontWeight: 700, color: unlocked ? '#39d152' : '#e6edf3' }}>{ach.name}</p>
+                      <p style={{ fontSize: 13, color: '#8b949e' }}>{ach.desc}</p>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: unlocked ? '#f1c40f' : '#484f58' }}>{unlocked ? `+${ach.reward}c` : `${ach.reward}c`}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── App ──────────────────────────────────────────────────
+    function App() {
+      const { account } = useAuth();
+      const [screen, setScreen] = useState('menu');
+      const [raceMode, setRaceMode] = useState('math');
+
+      if (!account) return <LoginPage />;
+
+      switch (screen) {
+        case 'menu': return <MenuPage onNavigate={setScreen} />;
+        case 'lobby': return <LobbyPage mode={raceMode} setMode={setRaceMode} onStart={() => setScreen('race')} onBack={() => setScreen('menu')} />;
+        case 'race': return <RacePage mode={raceMode} onFinish={() => setScreen('menu')} />;
+        case 'garage': return <GaragePage onBack={() => setScreen('menu')} />;
+        case 'shop': return <ShopPage onBack={() => setScreen('menu')} />;
+        case 'achievements': return <AchievementsPage onBack={() => setScreen('menu')} />;
+      }
+    }
+
+    // ─── Entry point ──────────────────────────────────────────
+    createRoot(document.getElementById('root')).render(
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    );
+  </script>
+</body>
 </html>
