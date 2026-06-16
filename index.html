@@ -545,8 +545,8 @@
         const playerDamage = account?.car.damage ?? 0;
         const cars = [
           { name: PLAYER_NAME, progress: 0, speed: 0, fuel: 0, damage: playerDamage, laps: 0, color: playerColor, isPlayer: true, active: true, finishTime: null, laneOffset: 0 },
-          ...BOT_CONFIGS.map(b => ({
-            name: b.name, progress: 0, speed: 0, fuel: 0, damage: 0, laps: 0, color: b.color, isPlayer: false, active: true, finishTime: null, laneOffset: 0,
+          ...BOT_CONFIGS.map((b, i) => ({
+            name: b.name, progress: 0, speed: 0, fuel: 0, damage: 0, laps: 0, color: b.color, isPlayer: false, active: true, finishTime: null, laneOffset: 0, nextAction: 0.5 + i * 0.3,
           })),
         ];
         usedBoostThisRace.current = false;
@@ -759,6 +759,8 @@
             const car = gs.cars[i];
             const bot = gs.bots[i - 1];
             if (!car || !bot || !car.active) continue;
+            if (gs.timer < car.nextAction) continue;
+            car.nextAction = gs.timer + 1.2 + Math.random() * 0.8;
             let skillScale = 1;
             if (playerLaps > avgBotLaps + 0.5) skillScale = 1 + Math.min(0.3, (playerLaps - avgBotLaps) * 0.1);
             if (playerLaps < avgBotLaps - 0.5) skillScale = 1 - Math.min(0.3, (avgBotLaps - playerLaps) * 0.1);
