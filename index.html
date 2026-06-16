@@ -487,11 +487,18 @@
 
     function lerp(a, b, t) { return a + (b - a) * t; }
 
+    const POWERUP_TYPES = [
+      { type: 'fuel', color: '#39d152', label: 'FUEL', effect: 25 },
+      { type: 'shield', color: '#58a6ff', label: 'SHIELD', effect: 0 },
+      { type: 'coin', color: '#f1c40f', label: 'COINS', effect: 30 },
+    ];
+
     function RacePage({ mode, onFinish }) {
       const { account, refreshAccount, addXp, addCoins } = useAuth();
       const canvasRef = useRef(null);
       const animRef = useRef(0);
       const usedPassageRef = useRef('');
+      const hasShieldRef = useRef(false);
       const gsRef = useRef({
         cars: [], bots: [], phase: 'countdown', countdown: 4, timer: 0,
         question: null, typingState: null, questionTimer: 0, questionActive: false,
@@ -542,12 +549,13 @@
           })),
         ];
         usedBoostThisRace.current = false;
+        hasShieldRef.current = false;
         usedPassageRef.current = '';
         gsRef.current = {
           cars, bots: BOT_CONFIGS, phase: 'countdown', countdown: 4, timer: 0,
           question: null, typingState: null, questionTimer: 0, questionActive: false,
           finished: false, winner: null, playerFinished: false, boostReady: false,
-          combo: 0, difficultyLevel: 1, weatherTime: 0, rainIntensity: 0, particles: [],
+          combo: 0, difficultyLevel: 1, powerups: [], weatherTime: 0, rainIntensity: 0, particles: [],
         };
       }
 
@@ -590,7 +598,11 @@
           playerCar.fuel = Math.min(100, playerCar.fuel + bonus);
         } else {
           gs.combo = 0;
-          playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_WRONG);
+          if (hasShieldRef.current) {
+            hasShieldRef.current = false;
+          } else {
+            playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_WRONG);
+          }
         }
         gs.question = null;
         gs.questionActive = false;
@@ -640,6 +652,15 @@
 
       function handleTypingKey(e) {
         if (e.key === ' ' || e.key === 'Enter') e.preventDefault();
+      }
+
+      function spawnPowerup() {
+        const gs = gsRef.current;
+        if (gs.powerups.length >= 3) return;
+        if (Math.random() > 0.004) return;
+        const t = Math.random() * Math.PI * 2;
+        const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+        gs.powerups.push({ t, type, life: 1 });
       }
 
       useEffect(() => {
@@ -780,6 +801,30 @@
           }
           if (gs.playerFinished) gs.finished = true;
 
+          // Power-ups (math mode only)
+          if (mode === 'math') {
+            spawnPowerup();
+            const playerCar = gs.cars[0];
+            for (let i = gs.powerups.length - 1; i >= 0; i--) {
+              const pu = gs.powerups[i];
+              pu.life -= dt * 0.12;
+              if (pu.life <= 0) { gs.powerups.splice(i, 1); continue; }
+              if (playerCar && playerCar.active) {
+                const pAngle = playerCar.progress * Math.PI * 2;
+                let diff = pAngle - pu.t;
+                if (diff > Math.PI) diff -= Math.PI * 2;
+                if (diff < -Math.PI) diff += Math.PI * 2;
+                if (Math.abs(diff) < 0.12) {
+                  const puType = pu.type;
+                  gs.powerups.splice(i, 1);
+                  if (puType.type === 'fuel') { playerCar.fuel = Math.min(100, playerCar.fuel + puType.effect); }
+                  else if (puType.type === 'shield') { hasShieldRef.current = true; }
+                  else if (puType.type === 'coin') { addCoins(puType.effect); }
+                }
+              }
+            }
+          }
+
           // Speed particles
           for (const car of gs.cars) {
             if (!car.active || car.speed < 0.15) continue;
@@ -901,6 +946,27 @@
           }
         }
 
+        // Power-ups
+        for (const pu of gs.powerups) {
+          const pPos = lemniscatePos(pu.t, scale);
+          const puX = cx + pPos.x;
+          const puY = cy + pPos.y;
+          const col = pu.type.color;
+          const alpha = Math.min(1, pu.life * 2);
+          ctx.beginPath();
+          ctx.arc(puX, puY, trackW * 0.12 * pu.life, 0, Math.PI * 2);
+          ctx.fillStyle = col + Math.round(alpha * 180).toString(16).padStart(2, '0');
+          ctx.fill();
+          ctx.strokeStyle = col + Math.round(alpha * 255).toString(16).padStart(2, '0');
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = `rgba(255,255,255,${alpha * 0.9})`;
+          ctx.font = `bold ${trackW * 0.1}px system-ui`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(pu.type.label, puX, puY);
+        }
+
         // Cars
         const carW = trackW * 0.4;
         const carH = trackW * 0.22;
@@ -944,6 +1010,13 @@
             ctx.beginPath();
             ctx.arc(0, -carH / 2 - 4, 3, 0, Math.PI * 2);
             ctx.fill();
+            if (hasShieldRef.current) {
+              ctx.strokeStyle = 'rgba(88,166,255,0.5)';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.roundRect(-carW / 2 - 3, -carH / 2 - 3, carW + 6, carH + 6, 5);
+              ctx.stroke();
+            }
           }
 
           ctx.restore();
@@ -975,7 +1048,7 @@
           setUiState(prev => ({
             ...prev, playerFuel: p.fuel, playerDamage: p.damage, playerLaps: p.laps, playerSpeed: p.speed,
             standings, winner: gs.winner, boostReady: gs.boostReady, combo: gs.combo,
-            difficultyLevel: gs.difficultyLevel,
+            difficultyLevel: gs.difficultyLevel, hasShield: hasShieldRef.current,
           }));
         }
 
@@ -1100,6 +1173,7 @@
                     <button type="submit" style={{ padding: '8px 20px', borderRadius: 6, background: '#238636', color: '#fff', fontSize: 15, fontWeight: 600 }}>Go</button>
                   </form>
                   {uiState.boostReady && <span style={{ color: '#f1c40f', fontSize: 12, fontWeight: 700 }}>BOOST ARMED</span>}
+                  {uiState.hasShield && <span style={{ color: '#58a6ff', fontSize: 12, fontWeight: 700, marginLeft: 8 }}>SHIELD</span>}
                 </div>
               ) : (
                 <span style={{ color: '#8b949e', fontSize: 15 }}>Waiting for next question...</span>
