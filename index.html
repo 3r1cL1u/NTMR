@@ -596,6 +596,16 @@
             bonus += BOOSTS.reduce((max, b) => Math.max(max, b.mathFuelBonus), 0);
           }
           playerCar.fuel = Math.min(100, playerCar.fuel + bonus);
+          playerCar.progress = Math.min(1, playerCar.progress + 1 / LAPS_TO_WIN);
+          if (playerCar.progress >= 1) {
+            playerCar.progress = 0;
+            playerCar.laps += 1;
+            if (playerCar.laps >= LAPS_TO_WIN) {
+              playerCar.active = false;
+              gs.playerFinished = true;
+              if (!gs.winner) gs.winner = playerCar.name;
+            }
+          }
         } else {
           gs.combo = 0;
           if (hasShieldRef.current) {
@@ -654,7 +664,19 @@
         const accuracy = Math.max(0, 1 - wrongCount / ts.text.length);
         const bonus = accuracy * 10 + Math.min(gs.combo, 20) * 0.3;
         const playerCar = gs.cars[0];
-        if (playerCar) playerCar.fuel = Math.min(100, playerCar.fuel + bonus);
+        if (playerCar) {
+          playerCar.fuel = Math.min(100, playerCar.fuel + bonus);
+          playerCar.progress = Math.min(1, playerCar.progress + 1 / LAPS_TO_WIN);
+          if (playerCar.progress >= 1) {
+            playerCar.progress = 0;
+            playerCar.laps += 1;
+            if (playerCar.laps >= LAPS_TO_WIN) {
+              playerCar.active = false;
+              gs.playerFinished = true;
+              if (!gs.winner) gs.winner = playerCar.name;
+            }
+          }
+        }
         gs.typingState = null;
         gs.questionActive = false;
         setUiState(prev => ({ ...prev, typingState: null, combo: gs.combo }));
@@ -806,9 +828,11 @@
             let speed = RACE_BASE_SPEED + (car.fuel / 100) * FUEL_SPEED_BONUS;
             speed *= (1 - (car.damage / MAX_DAMAGE) * 0.7);
             car.speed = speed;
-            car.progress += speed * dt * 0.7;
+            if (!car.isPlayer) {
+              car.progress += speed * dt * 0.7;
+            }
             car.fuel = Math.max(0, car.fuel - FUEL_DRAIN * dt * (1 + car.damage / MAX_DAMAGE));
-            if (car.progress >= 1) {
+            if (!car.isPlayer && car.progress >= 1) {
               car.progress -= 1;
               car.laps += 1;
               if (car.laps >= LAPS_TO_WIN) {
@@ -827,7 +851,10 @@
             }
             if (car.damage >= MAX_DAMAGE) { car.active = false; car.finishTime = null; if (car.isPlayer) gs.playerFinished = true; }
           }
-          if (gs.playerFinished) gs.finished = true;
+          if (gs.playerFinished) {
+            gs.finished = true;
+            fetchTip('typing');
+          }
 
           // Power-ups (math mode only)
           if (mode === 'math') {
