@@ -513,7 +513,7 @@
         question: null, typingState: null,
         playerFuel: 0, playerDamage: 0, playerLaps: 0, playerSpeed: 0,
         standings: [], winner: null, boostReady: false,
-        combo: 0, difficultyLevel: 1,
+        combo: 0, difficultyLevel: 1, tip: '',
       });
 
       const inputRef = useRef(null);
@@ -574,13 +574,13 @@
         const gs = gsRef.current;
         const { text, words } = generateTypingPassage(usedPassageRef.current);
         usedPassageRef.current = text;
-        const ts = { words, currentWordIdx: 0, typed: '', passage: text };
+        const ts = { text, words, currentCharIdx: 0, wrongAt: [] };
         gs.typingState = ts;
         gs.questionActive = true;
         gs.questionTimer = 0;
         setUiState(prev => ({ ...prev, typingState: ts }));
         setTypingInput('');
-        inputRef.current?.focus();
+        if (document.activeElement !== canvasRef.current) canvasRef.current?.focus();
       }
 
       function handleMathAnswer(value) {
@@ -608,50 +608,66 @@
         gs.questionActive = false;
         setUiState(prev => ({ ...prev, question: null, combo: gs.combo }));
         setAnswer('');
+        fetchTip('math');
       }
 
-      function handleTypingInput(value) {
+      function handleTypingChar(char) {
         const gs = gsRef.current;
         const ts = gs.typingState;
         if (!ts || !gs.questionActive) return;
-        if (value.endsWith(' ') || value.endsWith('\n')) {
-          const word = value.trim();
-          const targetWord = ts.words[ts.currentWordIdx];
-          if (!targetWord) return;
-          let skipBonus = 0;
-          if (gs.boostReady && !usedBoostThisRace.current && consumeBoost()) {
-            skipBonus = BOOSTS.reduce((max, b) => Math.max(max, b.typingSkipWords), 0);
+        if (ts.currentCharIdx >= ts.text.length) {
+          finishTypingPassage(gs, ts);
+          return;
+        }
+        const expected = ts.text[ts.currentCharIdx];
+        const playerCar = gs.cars[0];
+        if (char === expected) {
+          gs.combo += 1;
+          if (playerCar) {
+            const fuelGain = TYPING_FUEL_PER_WORD * 0.08 + Math.min(gs.combo, 20) * 0.05;
+            playerCar.fuel = Math.min(100, playerCar.fuel + fuelGain);
           }
-          if (word === targetWord) {
-            gs.combo += 1;
-            const comboBonus = Math.min(gs.combo, 20);
-            const skipTo = Math.min(ts.words.length, ts.currentWordIdx + 1 + skipBonus);
-            ts.currentWordIdx = skipTo;
-            const playerCar = gs.cars[0];
-            if (playerCar) {
-              playerCar.fuel = Math.min(100, playerCar.fuel + TYPING_FUEL_PER_WORD + comboBonus);
-            }
-          } else {
-            gs.combo = 0;
-            ts.currentWordIdx += 1;
-          }
-          if (ts.currentWordIdx >= ts.words.length) {
-            gs.typingState = null;
-            gs.questionActive = false;
-            setUiState(prev => ({ ...prev, typingState: null, combo: gs.combo }));
-            setTypingInput('');
-            startTyping();
-          } else {
-            setUiState(prev => ({ ...prev, typingState: { ...ts }, combo: gs.combo }));
-            setTypingInput('');
+          ts.currentCharIdx += 1;
+          if (ts.currentCharIdx >= ts.text.length) {
+            finishTypingPassage(gs, ts);
+            return;
           }
         } else {
-          setTypingInput(value);
+          gs.combo = 0;
+          ts.wrongAt.push(ts.currentCharIdx);
+          ts.currentCharIdx += 1;
+          if (hasShieldRef.current) {
+            hasShieldRef.current = false;
+          } else if (playerCar) {
+            playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_WRONG * 0.15);
+          }
+          if (ts.currentCharIdx >= ts.text.length) {
+            finishTypingPassage(gs, ts);
+            return;
+          }
         }
+        setUiState(prev => ({ ...prev, typingState: { ...ts }, combo: gs.combo }));
       }
 
-      function handleTypingKey(e) {
-        if (e.key === ' ' || e.key === 'Enter') e.preventDefault();
+      function finishTypingPassage(gs, ts) {
+        const wrongCount = ts.wrongAt.length;
+        const accuracy = Math.max(0, 1 - wrongCount / ts.text.length);
+        const bonus = accuracy * 10 + Math.min(gs.combo, 20) * 0.3;
+        const playerCar = gs.cars[0];
+        if (playerCar) playerCar.fuel = Math.min(100, playerCar.fuel + bonus);
+        gs.typingState = null;
+        gs.questionActive = false;
+        setUiState(prev => ({ ...prev, typingState: null, combo: gs.combo }));
+        setTypingInput('');
+        fetchTip('typing');
+        startTyping();
+      }
+
+      function fetchTip(mode) {
+        fetch(`/api/tips?mode=${mode}`)
+          .then(r => r.json())
+          .then(d => { if (d.tip) setUiState(prev => ({ ...prev, tip: d.tip })); })
+          .catch(() => {});
       }
 
       function spawnPowerup() {
@@ -669,6 +685,18 @@
           if (gs.phase !== 'racing' || gs.finished) return;
           const playerCar = gs.cars[0];
           if (!playerCar || !playerCar.active) return;
+
+          // Typing mode character input
+          if (mode === 'typing' && gs.questionActive && gs.typingState) {
+            if (e.key === 'Tab') { /* fall through to Tab handler */ }
+            else if (e.key === 'Backspace') { e.preventDefault(); return; }
+            else if (e.key.length === 1) {
+              e.preventDefault();
+              handleTypingChar(e.key);
+              return;
+            }
+          }
+
           switch (e.key) {
             case 'e': case 'E':
               if (mode === 'math' && !gs.questionActive && !usedBoostThisRace.current) {
@@ -1105,7 +1133,7 @@
 
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             <div style={{ flex: 1, position: 'relative' }}>
-              <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+              <canvas ref={canvasRef} tabIndex={0} style={{ width: '100%', height: '100%', display: 'block', outline: 'none' }} />
 
               {uiState.phase === 'countdown' && uiState.countdown > 0 && (
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)' }}>
@@ -1181,18 +1209,44 @@
             ) : (
               uiState.typingState ? (
                 <div style={{ width: '100%', maxWidth: 600, textAlign: 'center' }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, justifyContent: 'center', marginBottom: 8 }}>
-                    {uiState.typingState.words.map((word, i) => (
-                      <span key={i} style={{ padding: '2px 5px', borderRadius: 3, fontSize: 15, fontWeight: 600, color: i < uiState.typingState.currentWordIdx ? '#238636' : i === uiState.typingState.currentWordIdx ? '#f0f6fc' : '#484f58', background: i === uiState.typingState.currentWordIdx ? 'rgba(35,134,54,0.15)' : 'transparent' }}>{word}</span>
-                    ))}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', marginBottom: 8, fontFamily: 'monospace', fontSize: 20, lineHeight: 1.6 }}>
+                    {uiState.typingState.text.split('').map((ch, i) => {
+                      if (ch === ' ') {
+                        let color = '#484f58';
+                        let bg = 'transparent';
+                        if (i < uiState.typingState.currentCharIdx) {
+                          color = uiState.typingState.wrongAt.includes(i) ? '#f85149' : '#238636';
+                        } else if (i === uiState.typingState.currentCharIdx) {
+                          color = '#f0f6fc';
+                          bg = 'rgba(35,134,54,0.3)';
+                        }
+                        return <span key={i} style={{ display: 'inline-block', width: 8, height: 24, background: bg, borderRadius: 2 }} />;
+                      }
+                      let color = '#484f58';
+                      let decoration = 'none';
+                      if (i < uiState.typingState.currentCharIdx) {
+                        color = uiState.typingState.wrongAt.includes(i) ? '#f85149' : '#39d152';
+                      } else if (i === uiState.typingState.currentCharIdx) {
+                        color = '#f0f6fc';
+                        decoration = 'underline';
+                      }
+                      return <span key={i} style={{ color, textDecoration: decoration }}>{ch}</span>;
+                    })}
                   </div>
-                  <input ref={inputRef} value={typingInput} onChange={e => handleTypingInput(e.target.value)} onKeyDown={handleTypingKey} style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 16 }} placeholder="Type here..." autoFocus />
+                  <div style={{ fontSize: 12, color: '#8b949e', marginTop: 4 }}>
+                    {uiState.typingState.wrongAt.length > 0 ? `Mistakes: ${uiState.typingState.wrongAt.length}` : 'Type the passage above'}
+                  </div>
                 </div>
               ) : (
                 <span style={{ color: '#8b949e', fontSize: 15 }}>Get ready to type...</span>
               )
             )}
           </div>
+          {uiState.tip && (
+            <div style={{ background: '#1c2333', borderTop: '1px solid #30363d', padding: '6px 20px', textAlign: 'center', fontSize: 12, color: '#8b949e', fontStyle: 'italic' }}>
+              TIP: {uiState.tip}
+            </div>
+          )}
         </div>
       );
     }
