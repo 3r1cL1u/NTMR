@@ -405,8 +405,7 @@
     const FUEL_PER_CORRECT = 30;
     const DAMAGE_PER_WRONG = 15;
     const DAMAGE_PER_TYPING_MISTAKE = 5;
-    const LANE_STEP = 0.04;
-    const LANE_CLAMP = 0.6;
+
     const COMBO_BONUS_PER_STACK = 5;
     const TYPING_FUEL_PER_WORD = 8;
 
@@ -480,12 +479,6 @@
       'The rookie driver showed incredible skill and composure.',
     ];
 
-    const POWERUP_TYPES = [
-      { type: 'fuel', color: '#39d152', label: 'FUEL', effect: 20 },
-      { type: 'shield', color: '#58a6ff', label: 'SHIELD', effect: 0 },
-      { type: 'coin', color: '#f1c40f', label: 'COINS', effect: 30 },
-    ];
-
     function generateTypingPassage(used) {
       const pool = TYPING_PASSAGES.filter(p => p !== used);
       const text = pool[Math.floor(Math.random() * pool.length)] || TYPING_PASSAGES[Math.floor(Math.random() * TYPING_PASSAGES.length)];
@@ -499,13 +492,12 @@
       const canvasRef = useRef(null);
       const animRef = useRef(0);
       const usedPassageRef = useRef('');
-      const hasShieldRef = useRef(false);
       const gsRef = useRef({
         cars: [], bots: [], phase: 'countdown', countdown: 4, timer: 0,
         question: null, typingState: null, questionTimer: 0, questionActive: false,
         finished: false, winner: null, playerFinished: false,
         boostReady: false, combo: 0, difficultyLevel: 1,
-        powerups: [], weatherTime: 0, rainIntensity: 0,
+        weatherTime: 0, rainIntensity: 0,
         particles: [],
       });
 
@@ -514,7 +506,7 @@
         question: null, typingState: null,
         playerFuel: 0, playerDamage: 0, playerLaps: 0, playerSpeed: 0,
         standings: [], winner: null, boostReady: false,
-        combo: 0, difficultyLevel: 1, hasShield: false,
+        combo: 0, difficultyLevel: 1,
       });
 
       const inputRef = useRef(null);
@@ -544,19 +536,18 @@
         const playerColor = account?.car.color ?? '#e23636';
         const playerDamage = account?.car.damage ?? 0;
         const cars = [
-          { name: PLAYER_NAME, progress: 0, speed: 0, fuel: 0, damage: playerDamage, laps: 0, color: playerColor, isPlayer: true, active: true, finishTime: null, laneOffset: 0 },
+          { name: PLAYER_NAME, progress: 0, speed: 0, fuel: 0, damage: playerDamage, laps: 0, color: playerColor, isPlayer: true, active: true, finishTime: null },
           ...BOT_CONFIGS.map((b, i) => ({
-            name: b.name, progress: 0, speed: 0, fuel: 0, damage: 0, laps: 0, color: b.color, isPlayer: false, active: true, finishTime: null, laneOffset: 0, nextAction: 0.5 + i * 0.3,
+            name: b.name, progress: 0, speed: 0, fuel: 0, damage: 0, laps: 0, color: b.color, isPlayer: false, active: true, finishTime: null, nextAction: 0.5 + i * 0.3,
           })),
         ];
         usedBoostThisRace.current = false;
-        hasShieldRef.current = false;
         usedPassageRef.current = '';
         gsRef.current = {
           cars, bots: BOT_CONFIGS, phase: 'countdown', countdown: 4, timer: 0,
           question: null, typingState: null, questionTimer: 0, questionActive: false,
           finished: false, winner: null, playerFinished: false, boostReady: false,
-          combo: 0, difficultyLevel: 1, powerups: [], weatherTime: 0, rainIntensity: 0, particles: [],
+          combo: 0, difficultyLevel: 1, weatherTime: 0, rainIntensity: 0, particles: [],
         };
       }
 
@@ -599,11 +590,7 @@
           playerCar.fuel = Math.min(100, playerCar.fuel + bonus);
         } else {
           gs.combo = 0;
-          if (hasShieldRef.current) {
-            hasShieldRef.current = false;
-          } else {
-            playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_WRONG);
-          }
+          playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_WRONG);
         }
         gs.question = null;
         gs.questionActive = false;
@@ -655,31 +642,15 @@
         if (e.key === ' ' || e.key === 'Enter') e.preventDefault();
       }
 
-      function spawnPowerup() {
-        const gs = gsRef.current;
-        if (gs.powerups.length >= 3) return;
-        if (Math.random() > 0.005) return;
-        const t = Math.random() * Math.PI * 2;
-        const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
-        gs.powerups.push({ t, type, life: 1 });
-      }
-
       useEffect(() => {
         function onKeyDown(e) {
           const gs = gsRef.current;
           if (gs.phase !== 'racing' || gs.finished) return;
           const playerCar = gs.cars[0];
           if (!playerCar || !playerCar.active) return;
-          if (mode === 'typing') { playerCar.laneOffset = 0; return; }
           switch (e.key) {
-            case 'a': case 'A': case 'ArrowLeft':
-              playerCar.laneOffset = Math.max(-LANE_CLAMP, playerCar.laneOffset - LANE_STEP);
-              e.preventDefault(); break;
-            case 'd': case 'D': case 'ArrowRight':
-              playerCar.laneOffset = Math.min(LANE_CLAMP, playerCar.laneOffset + LANE_STEP);
-              e.preventDefault(); break;
             case 'e': case 'E':
-              if (!gs.questionActive && !usedBoostThisRace.current) {
+              if (mode === 'math' && !gs.questionActive && !usedBoostThisRace.current) {
                 const inv = account?.inventory;
                 if (inv && BOOSTS.some(b => inv[`boost${b.tier.charAt(0).toUpperCase() + b.tier.slice(1)}`] > 0)) {
                   gs.boostReady = true;
@@ -729,7 +700,7 @@
         if (gs.phase === 'countdown') {
           gs.countdown -= dt;
           if (gs.countdown <= 0) { gs.phase = 'racing'; gs.timer = 0; }
-          setUiState(prev => ({ ...prev, countdown: Math.ceil(gs.countdown), phase: 'countdown', boostReady: gs.boostReady, combo: gs.combo, hasShield: hasShieldRef.current }));
+          setUiState(prev => ({ ...prev, countdown: Math.ceil(gs.countdown), phase: 'countdown', boostReady: gs.boostReady, combo: gs.combo }));
         }
 
         // Racing logic
@@ -792,38 +763,22 @@
               car.progress -= 1;
               car.laps += 1;
               if (car.laps >= LAPS_TO_WIN) {
-                car.active = false;
-                car.finishTime = gs.timer;
-                if (car.isPlayer) gs.playerFinished = true;
-                if (!gs.winner) gs.winner = car.name;
-              }
-            }
-            if (car.damage >= MAX_DAMAGE) { car.active = false; car.finishTime = null; }
-          }
-          if (gs.cars.every(c => !c.active)) gs.finished = true;
-
-          // Power-ups (math only)
-          if (mode === 'math') {
-            spawnPowerup();
-            for (let i = gs.powerups.length - 1; i >= 0; i--) {
-              const pu = gs.powerups[i];
-              pu.life -= dt * 0.15;
-              if (pu.life <= 0) { gs.powerups.splice(i, 1); continue; }
-              if (playerCar && playerCar.active) {
-                const pAngle = playerCar.progress * Math.PI * 2;
-                let diff = pAngle - pu.t;
-                if (diff > Math.PI) diff -= Math.PI * 2;
-                if (diff < -Math.PI) diff += Math.PI * 2;
-                if (Math.abs(diff) < 0.15 && Math.abs(playerCar.laneOffset) < 0.3) {
-                  const puType = pu.type;
-                  gs.powerups.splice(i, 1);
-                  if (puType.type === 'fuel') { playerCar.fuel = Math.min(100, playerCar.fuel + puType.effect); }
-                  else if (puType.type === 'shield') { hasShieldRef.current = true; }
-                  else if (puType.type === 'coin') { addCoins(puType.effect); }
+                if (car.isPlayer) {
+                  car.active = false;
+                  gs.playerFinished = true;
+                  if (!gs.winner) gs.winner = car.name;
+                } else {
+                  if (!car.finishTime) {
+                    car.finishTime = gs.timer;
+                    if (!gs.winner) gs.winner = car.name;
+                  }
+                  car.fuel = Math.max(0, car.fuel - 10);
                 }
               }
             }
+            if (car.damage >= MAX_DAMAGE) { car.active = false; car.finishTime = null; if (car.isPlayer) gs.playerFinished = true; }
           }
+          if (gs.playerFinished) gs.finished = true;
 
           // Speed particles
           for (const car of gs.cars) {
@@ -831,10 +786,8 @@
             const t = car.progress * Math.PI * 2;
             const base = lemniscatePos(t, scale);
             const angle = lemniscateAngle(t);
-            const nAngle = lemniscateNormal(t);
-            const offDist = car.laneOffset * trackW * 0.3;
-            const px = (W / 2) + base.x + Math.cos(nAngle) * offDist;
-            const py = (H / 2) + base.y + Math.sin(nAngle) * offDist;
+            const px = (W / 2) + base.x;
+            const py = (H / 2) + base.y;
             const backAngle = angle + Math.PI;
             if (Math.random() < car.speed * 0.4) {
               gs.particles.push({
@@ -948,29 +901,6 @@
           }
         }
 
-        // Power-ups on track (math mode only)
-        if (mode === 'math') {
-          for (const pu of gs.powerups) {
-            const pos = lemniscatePos(pu.t, scale);
-            const px = cx + pos.x;
-            const py = cy + pos.y;
-            const pulse = 1 + Math.sin(gs.timer * 4 + pu.t) * 0.15;
-            const r = 7 * pulse;
-            ctx.beginPath();
-            ctx.arc(px, py, r, 0, Math.PI * 2);
-            ctx.fillStyle = pu.type.color;
-            ctx.shadowColor = pu.type.color;
-            ctx.shadowBlur = 8;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#fff';
-            ctx.font = '6px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(pu.type.label, px, py);
-          }
-        }
-
         // Cars
         const carW = trackW * 0.4;
         const carH = trackW * 0.22;
@@ -978,10 +908,8 @@
           if (!car.active && car.finishTime === null) continue;
           const t = car.progress * Math.PI * 2;
           const base = lemniscatePos(t, scale);
-          const nAngle = lemniscateNormal(t);
-          const offDist = car.laneOffset * trackW * 0.3;
-          const carX = cx + base.x + Math.cos(nAngle) * offDist;
-          const carY = cy + base.y + Math.sin(nAngle) * offDist;
+          const carX = cx + base.x;
+          const carY = cy + base.y;
           const angle = lemniscateAngle(t);
 
           ctx.save();
@@ -1010,14 +938,6 @@
           ctx.beginPath();
           ctx.roundRect(-carW / 2, -carH / 2, carW, carH, 3);
           ctx.stroke();
-
-          if (car.isPlayer && hasShieldRef.current) {
-            ctx.strokeStyle = 'rgba(88,166,255,0.5)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(-carW / 2 - 3, -carH / 2 - 3, carW + 6, carH + 6, 5);
-            ctx.stroke();
-          }
 
           if (car.isPlayer) {
             ctx.fillStyle = '#f1c40f';
@@ -1055,7 +975,7 @@
           setUiState(prev => ({
             ...prev, playerFuel: p.fuel, playerDamage: p.damage, playerLaps: p.laps, playerSpeed: p.speed,
             standings, winner: gs.winner, boostReady: gs.boostReady, combo: gs.combo,
-            difficultyLevel: gs.difficultyLevel, hasShield: hasShieldRef.current,
+            difficultyLevel: gs.difficultyLevel,
           }));
         }
 
@@ -1097,9 +1017,6 @@
               <span style={{ color: '#58a6ff', fontSize: 12, fontWeight: 600 }}>Lv.{uiState.difficultyLevel}</span>
               {uiState.combo > 1 && (
                 <span style={{ color: '#f1c40f', fontSize: 12, fontWeight: 700 }}>x{uiState.combo} combo</span>
-              )}
-              {uiState.hasShield && (
-                <span style={{ color: '#58a6ff', fontSize: 12, fontWeight: 700 }}>SHIELD</span>
               )}
             </div>
             <span style={{ color: '#f0f6fc', fontWeight: 700, fontSize: 14 }}>Lap {Math.min(uiState.playerLaps + 1, LAPS_TO_WIN)} / {LAPS_TO_WIN}</span>
@@ -1155,17 +1072,6 @@
                   <div style={{ width: `${uiState.playerDamage}%`, height: '100%', background: uiState.playerDamage > 50 ? '#f85149' : uiState.playerDamage > 20 ? '#f1c40f' : '#484f58', borderRadius: 2 }} />
                 </div>
               </div>
-
-              {mode === 'math' && (
-                <div style={{ background: '#0d1117', borderRadius: 8, padding: 10, border: '1px solid #30363d' }}>
-                  <p style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Controls</p>
-                  <div style={{ fontSize: 10, color: '#8b949e', lineHeight: 1.6 }}>
-                    <div>A/← — Left</div>
-                    <div>D/→ — Right</div>
-                    <div>E — Boost</div>
-                  </div>
-                </div>
-              )}
 
               <div style={{ flex: 1, background: '#0d1117', borderRadius: 8, padding: 10, border: '1px solid #30363d', overflow: 'auto' }}>
                 <p style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Standings</p>
