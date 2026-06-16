@@ -272,7 +272,6 @@
 
     // ─── Pages ────────────────────────────────────────────────
 
-    // LoginPage
     function LoginPage() {
       const { login, register } = useAuth();
       const [username, setUsername] = useState('');
@@ -300,22 +299,11 @@
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', marginBottom: 6, color: '#c9d1d9', fontSize: 14, fontWeight: 600 }}>Username</label>
-                <input
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 15 }}
-                  placeholder="Enter username"
-                />
+                <input value={username} onChange={e => setUsername(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 15 }} placeholder="Enter username" />
               </div>
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: 'block', marginBottom: 6, color: '#c9d1d9', fontSize: 14, fontWeight: 600 }}>Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 15 }}
-                  placeholder="Enter password"
-                />
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 15 }} placeholder="Enter password" />
               </div>
               {error && <p style={{ color: '#f85149', fontSize: 13, marginBottom: 12 }}>{error}</p>}
               <button type="submit" style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#238636', color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
@@ -330,24 +318,20 @@
       );
     }
 
-    // MenuPage
     function MenuPage({ onNavigate }) {
       const { account, logout } = useAuth();
-
       const navItems = [
         { label: 'Race', target: 'lobby', desc: 'Compete in a race' },
         { label: 'Garage', target: 'garage', desc: 'Fix and customize your car' },
         { label: 'Shop', target: 'shop', desc: 'Buy boosts, repairs, and colors' },
         { label: 'Achievements', target: 'achievements', desc: 'View your progress' },
       ];
-
       const btnStyle = {
         width: '100%', padding: '16px 24px', borderRadius: 10, background: '#21262d',
         color: '#e6edf3', fontSize: 16, fontWeight: 700, textAlign: 'left',
         border: '1px solid #30363d', transition: 'background 0.15s',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       };
-
       return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
           <div style={{ width: 420 }}>
@@ -378,25 +362,15 @@
       );
     }
 
-    // LobbyPage
     function LobbyPage({ mode, setMode, onStart, onBack }) {
       const { account } = useAuth();
-
       return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
           <div style={{ width: 480 }}>
             <h2 style={{ fontSize: 24, fontWeight: 800, textAlign: 'center', marginBottom: 24, color: '#f0f6fc' }}>Race Lobby</h2>
             <div style={{ display: 'flex', gap: 12, marginBottom: 24, justifyContent: 'center' }}>
-              <button onClick={() => setMode('math')} style={{
-                padding: '12px 32px', borderRadius: 8, fontWeight: 700, fontSize: 15,
-                background: mode === 'math' ? '#238636' : '#21262d',
-                color: '#e6edf3', border: '1px solid #30363d',
-              }}>Math Mode</button>
-              <button onClick={() => setMode('typing')} style={{
-                padding: '12px 32px', borderRadius: 8, fontWeight: 700, fontSize: 15,
-                background: mode === 'typing' ? '#238636' : '#21262d',
-                color: '#e6edf3', border: '1px solid #30363d',
-              }}>Typing Mode</button>
+              <button onClick={() => setMode('math')} style={{ padding: '12px 32px', borderRadius: 8, fontWeight: 700, fontSize: 15, background: mode === 'math' ? '#238636' : '#21262d', color: '#e6edf3', border: '1px solid #30363d' }}>Math Mode</button>
+              <button onClick={() => setMode('typing')} style={{ padding: '12px 32px', borderRadius: 8, fontWeight: 700, fontSize: 15, background: mode === 'typing' ? '#238636' : '#21262d', color: '#e6edf3', border: '1px solid #30363d' }}>Typing Mode</button>
             </div>
             <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d', marginBottom: 24 }}>
               <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Grid (5 spots)</p>
@@ -416,12 +390,8 @@
               </div>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={onBack} style={{ flex: 1, padding: '14px', borderRadius: 8, background: '#21262d', color: '#e6edf3', fontSize: 15, fontWeight: 600, border: '1px solid #30363d' }}>
-                Back
-              </button>
-              <button onClick={onStart} style={{ flex: 2, padding: '14px', borderRadius: 8, background: '#238636', color: '#fff', fontSize: 16, fontWeight: 800 }}>
-                Start Race
-              </button>
+              <button onClick={onBack} style={{ flex: 1, padding: '14px', borderRadius: 8, background: '#21262d', color: '#e6edf3', fontSize: 15, fontWeight: 600, border: '1px solid #30363d' }}>Back</button>
+              <button onClick={onStart} style={{ flex: 2, padding: '14px', borderRadius: 8, background: '#238636', color: '#fff', fontSize: 16, fontWeight: 800 }}>Start Race</button>
             </div>
           </div>
         </div>
@@ -437,28 +407,37 @@
     const DAMAGE_PER_TYPING_MISTAKE = 5;
     const LANE_STEP = 0.04;
     const LANE_CLAMP = 0.6;
+    const COMBO_BONUS_PER_STACK = 5;
+    const TYPING_FUEL_PER_WORD = 8;
 
-    function generateMathQuestion() {
-      const ops = ['+', '-', '×', '÷'];
+    function generateMathQuestion(difficulty) {
+      const lap = Math.min(difficulty, 8);
+      let ops;
+      if (lap <= 1) ops = ['+', '-'];
+      else if (lap <= 2) ops = ['+', '-', '×'];
+      else ops = ['+', '-', '×', '÷'];
+
       const op = ops[Math.floor(Math.random() * ops.length)];
       let a, b, answer, text;
 
+      const maxNum = 10 + lap * 10;
+
       switch (op) {
         case '+':
-          a = Math.floor(Math.random() * 90) + 5;
-          b = Math.floor(Math.random() * 90) + 5;
+          a = Math.floor(Math.random() * maxNum) + 5;
+          b = Math.floor(Math.random() * maxNum) + 5;
           answer = a + b;
           text = `${a} + ${b} = ?`;
           break;
         case '-':
-          a = Math.floor(Math.random() * 90) + 10;
-          b = Math.floor(Math.random() * a) + 1;
+          a = Math.floor(Math.random() * maxNum) + 10;
+          b = Math.floor(Math.random() * Math.min(a, maxNum)) + 1;
           answer = a - b;
           text = `${a} - ${b} = ?`;
           break;
         case '×':
-          a = Math.floor(Math.random() * 12) + 2;
-          b = Math.floor(Math.random() * 12) + 2;
+          a = lap <= 3 ? Math.floor(Math.random() * 9) + 2 : Math.floor(Math.random() * 12) + 2;
+          b = lap <= 3 ? Math.floor(Math.random() * 9) + 2 : Math.floor(Math.random() * (5 + lap)) + 2;
           answer = a * b;
           text = `${a} × ${b} = ?`;
           break;
@@ -494,22 +473,40 @@
       'The finish line shimmered under the blazing sun.',
       'Every second counts when racing at full throttle.',
       'The driver focused on the winding road ahead.',
+      'Rain began to fall on the slick racing surface.',
+      'The crowd erupted as the leader took the checkered flag.',
+      'Sharp turns require precise braking and acceleration.',
+      'Drafting behind another car can save valuable fuel.',
+      'The rookie driver showed incredible skill and composure.',
     ];
 
-    function generateTypingPassage() {
-      const text = TYPING_PASSAGES[Math.floor(Math.random() * TYPING_PASSAGES.length)];
+    const POWERUP_TYPES = [
+      { type: 'fuel', color: '#39d152', label: 'FUEL', effect: 20 },
+      { type: 'shield', color: '#58a6ff', label: 'SHIELD', effect: 0 },
+      { type: 'coin', color: '#f1c40f', label: 'COINS', effect: 30 },
+    ];
+
+    function generateTypingPassage(used) {
+      const pool = TYPING_PASSAGES.filter(p => p !== used);
+      const text = pool[Math.floor(Math.random() * pool.length)] || TYPING_PASSAGES[Math.floor(Math.random() * TYPING_PASSAGES.length)];
       return { text, words: text.split(' ') };
     }
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
 
     function RacePage({ mode, onFinish }) {
       const { account, refreshAccount, addXp, addCoins } = useAuth();
       const canvasRef = useRef(null);
       const animRef = useRef(0);
+      const usedPassageRef = useRef('');
+      const hasShieldRef = useRef(false);
       const gsRef = useRef({
         cars: [], bots: [], phase: 'countdown', countdown: 4, timer: 0,
         question: null, typingState: null, questionTimer: 0, questionActive: false,
         finished: false, winner: null, playerFinished: false,
-        boostReady: false,
+        boostReady: false, combo: 0, difficultyLevel: 1,
+        powerups: [], weatherTime: 0, rainIntensity: 0,
+        particles: [],
       });
 
       const [uiState, setUiState] = useState({
@@ -517,6 +514,7 @@
         question: null, typingState: null,
         playerFuel: 0, playerDamage: 0, playerLaps: 0, playerSpeed: 0,
         standings: [], winner: null, boostReady: false,
+        combo: 0, difficultyLevel: 1, hasShield: false,
       });
 
       const inputRef = useRef(null);
@@ -532,10 +530,7 @@
           const key = `boost${b.tier.charAt(0).toUpperCase() + b.tier.slice(1)}`;
           if (inv[key] > 0) {
             const username = getCurrentUsername();
-            if (username) {
-              updateAccount(username, (a) => { a.inventory[key] -= 1; return a; });
-              refreshAccount();
-            }
+            if (username) { updateAccount(username, (a) => { a.inventory[key] -= 1; return a; }); refreshAccount(); }
             usedBoostThisRace.current = true;
             gsRef.current.boostReady = false;
             setUiState(prev => ({ ...prev, boostReady: false }));
@@ -551,33 +546,39 @@
         const cars = [
           { name: PLAYER_NAME, progress: 0, speed: 0, fuel: 0, damage: playerDamage, laps: 0, color: playerColor, isPlayer: true, active: true, finishTime: null, laneOffset: 0 },
           ...BOT_CONFIGS.map(b => ({
-            name: b.name, progress: 0, speed: 0, fuel: 0, damage: 0, laps: 0, color: b.color, isPlayer: false, active: true, finishTime: null, laneOffset: (Math.random() - 0.5) * 0.3,
+            name: b.name, progress: 0, speed: 0, fuel: 0, damage: 0, laps: 0, color: b.color, isPlayer: false, active: true, finishTime: null, laneOffset: 0,
           })),
         ];
         usedBoostThisRace.current = false;
+        hasShieldRef.current = false;
+        usedPassageRef.current = '';
         gsRef.current = {
           cars, bots: BOT_CONFIGS, phase: 'countdown', countdown: 4, timer: 0,
           question: null, typingState: null, questionTimer: 0, questionActive: false,
           finished: false, winner: null, playerFinished: false, boostReady: false,
+          combo: 0, difficultyLevel: 1, powerups: [], weatherTime: 0, rainIntensity: 0, particles: [],
         };
       }
 
       function showNextQuestion() {
-        const q = generateMathQuestion();
-        gsRef.current.question = q;
-        gsRef.current.questionActive = true;
-        gsRef.current.questionTimer = 0;
+        const gs = gsRef.current;
+        const q = generateMathQuestion(gs.difficultyLevel);
+        gs.question = q;
+        gs.questionActive = true;
+        gs.questionTimer = 0;
         setUiState(prev => ({ ...prev, question: q }));
         setAnswer('');
         inputRef.current?.focus();
       }
 
-      function showTypingPassage() {
-        const { text, words } = generateTypingPassage();
+      function startTyping() {
+        const gs = gsRef.current;
+        const { text, words } = generateTypingPassage(usedPassageRef.current);
+        usedPassageRef.current = text;
         const ts = { words, currentWordIdx: 0, typed: '', passage: text };
-        gsRef.current.typingState = ts;
-        gsRef.current.questionActive = true;
-        gsRef.current.questionTimer = 0;
+        gs.typingState = ts;
+        gs.questionActive = true;
+        gs.questionTimer = 0;
         setUiState(prev => ({ ...prev, typingState: ts }));
         setTypingInput('');
         inputRef.current?.focus();
@@ -590,17 +591,23 @@
         const playerCar = gs.cars[0];
         if (!playerCar) return;
         if (num === gs.question.answer) {
-          let bonus = FUEL_PER_CORRECT;
-          if (gs.boostReady && !usedBoostThisRace.current) {
-            if (consumeBoost()) bonus += BOOSTS.reduce((max, b) => Math.max(max, b.mathFuelBonus), 0);
+          gs.combo += 1;
+          let bonus = FUEL_PER_CORRECT + Math.min(gs.combo, 20) * COMBO_BONUS_PER_STACK;
+          if (gs.boostReady && !usedBoostThisRace.current && consumeBoost()) {
+            bonus += BOOSTS.reduce((max, b) => Math.max(max, b.mathFuelBonus), 0);
           }
           playerCar.fuel = Math.min(100, playerCar.fuel + bonus);
         } else {
-          playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_WRONG);
+          gs.combo = 0;
+          if (hasShieldRef.current) {
+            hasShieldRef.current = false;
+          } else {
+            playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_WRONG);
+          }
         }
         gs.question = null;
         gs.questionActive = false;
-        setUiState(prev => ({ ...prev, question: null }));
+        setUiState(prev => ({ ...prev, question: null, combo: gs.combo }));
         setAnswer('');
       }
 
@@ -613,26 +620,30 @@
           const targetWord = ts.words[ts.currentWordIdx];
           if (!targetWord) return;
           let skipBonus = 0;
-          if (gs.boostReady && !usedBoostThisRace.current) {
-            if (consumeBoost()) skipBonus = BOOSTS.reduce((max, b) => Math.max(max, b.typingSkipWords), 0);
+          if (gs.boostReady && !usedBoostThisRace.current && consumeBoost()) {
+            skipBonus = BOOSTS.reduce((max, b) => Math.max(max, b.typingSkipWords), 0);
           }
           if (word === targetWord) {
+            gs.combo += 1;
+            const comboBonus = Math.min(gs.combo, 20);
             const skipTo = Math.min(ts.words.length, ts.currentWordIdx + 1 + skipBonus);
             ts.currentWordIdx = skipTo;
             const playerCar = gs.cars[0];
-            if (playerCar) playerCar.fuel = Math.min(100, playerCar.fuel + 3 + (skipBonus > 0 ? 5 : 0));
+            if (playerCar) {
+              playerCar.fuel = Math.min(100, playerCar.fuel + TYPING_FUEL_PER_WORD + comboBonus);
+            }
           } else {
-            const playerCar = gs.cars[0];
-            if (playerCar) playerCar.damage = Math.min(MAX_DAMAGE, playerCar.damage + DAMAGE_PER_TYPING_MISTAKE);
+            gs.combo = 0;
             ts.currentWordIdx += 1;
           }
           if (ts.currentWordIdx >= ts.words.length) {
             gs.typingState = null;
             gs.questionActive = false;
-            setUiState(prev => ({ ...prev, typingState: null }));
+            setUiState(prev => ({ ...prev, typingState: null, combo: gs.combo }));
             setTypingInput('');
+            startTyping();
           } else {
-            setUiState(prev => ({ ...prev, typingState: { ...ts } }));
+            setUiState(prev => ({ ...prev, typingState: { ...ts }, combo: gs.combo }));
             setTypingInput('');
           }
         } else {
@@ -644,30 +655,31 @@
         if (e.key === ' ' || e.key === 'Enter') e.preventDefault();
       }
 
-      // Keyboard controls
+      function spawnPowerup() {
+        const gs = gsRef.current;
+        if (gs.powerups.length >= 3) return;
+        if (Math.random() > 0.005) return;
+        const t = Math.random() * Math.PI * 2;
+        const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+        gs.powerups.push({ t, type, life: 1 });
+      }
+
       useEffect(() => {
         function onKeyDown(e) {
           const gs = gsRef.current;
           if (gs.phase !== 'racing' || gs.finished) return;
           const playerCar = gs.cars[0];
           if (!playerCar || !playerCar.active) return;
-
+          if (mode === 'typing') { playerCar.laneOffset = 0; return; }
           switch (e.key) {
-            case 'a':
-            case 'A':
-            case 'ArrowLeft':
+            case 'a': case 'A': case 'ArrowLeft':
               playerCar.laneOffset = Math.max(-LANE_CLAMP, playerCar.laneOffset - LANE_STEP);
-              e.preventDefault();
-              break;
-            case 'd':
-            case 'D':
-            case 'ArrowRight':
+              e.preventDefault(); break;
+            case 'd': case 'D': case 'ArrowRight':
               playerCar.laneOffset = Math.min(LANE_CLAMP, playerCar.laneOffset + LANE_STEP);
-              e.preventDefault();
-              break;
-            case 'e':
-            case 'E':
-              if (mode === 'math' && !gs.questionActive && !usedBoostThisRace.current) {
+              e.preventDefault(); break;
+            case 'e': case 'E':
+              if (!gs.questionActive && !usedBoostThisRace.current) {
                 const inv = account?.inventory;
                 if (inv && BOOSTS.some(b => inv[`boost${b.tier.charAt(0).toUpperCase() + b.tier.slice(1)}`] > 0)) {
                   gs.boostReady = true;
@@ -683,8 +695,7 @@
                   setUiState(prev => ({ ...prev, boostReady: true }));
                 }
               }
-              e.preventDefault();
-              break;
+              e.preventDefault(); break;
           }
         }
         window.addEventListener('keydown', onKeyDown);
@@ -701,27 +712,35 @@
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
         ctx.scale(dpr, dpr);
+        ctx.imageSmoothingEnabled = true;
         const W = rect.width;
         const H = rect.height;
         const gs = gsRef.current;
         const dt = 1 / 60;
-        const scale = Math.min(W, H) * 0.32;
-        const trackW = Math.min(W, H) * 0.06;
+        const scale = Math.min(W, H) * 0.3;
+        const trackW = Math.min(W, H) * 0.055;
 
-        // countdown
+        // Weather cycle
+        gs.weatherTime += dt * 0.02;
+        const dayNight = (Math.sin(gs.weatherTime) + 1) / 2;
+        gs.rainIntensity = Math.max(0, Math.sin(gs.weatherTime * 0.7 + 1) * 0.5);
+
+        // Countdown
         if (gs.phase === 'countdown') {
           gs.countdown -= dt;
           if (gs.countdown <= 0) { gs.phase = 'racing'; gs.timer = 0; }
-          setUiState(prev => ({
-            ...prev, countdown: Math.ceil(gs.countdown), phase: 'countdown',
-            boostReady: gs.boostReady,
-          }));
+          setUiState(prev => ({ ...prev, countdown: Math.ceil(gs.countdown), phase: 'countdown', boostReady: gs.boostReady, combo: gs.combo, hasShield: hasShieldRef.current }));
         }
 
-        // racing logic
+        // Racing logic
         if (gs.phase === 'racing' && !gs.finished) {
           gs.timer += dt;
           const playerCar = gs.cars[0];
+
+          // Difficulty increases with laps
+          if (playerCar) gs.difficultyLevel = Math.max(1, playerCar.laps + 1);
+
+          // Questions
           if (playerCar && playerCar.active) {
             if (mode === 'math' && !gs.questionActive) {
               gs.questionTimer += dt;
@@ -729,31 +748,37 @@
             }
             if (mode === 'typing' && !gs.questionActive) {
               gs.questionTimer += dt;
-              if (gs.questionTimer > 0.8) showTypingPassage();
+              if (gs.questionTimer > 0.3) startTyping();
             }
           }
+
+          // Bot AI with catch-up scaling
+          const avgBotLaps = gs.cars.slice(1).reduce((s, c) => s + c.laps, 0) / Math.max(1, gs.cars.length - 1);
+          const playerLaps = playerCar ? playerCar.laps : 0;
           for (let i = 1; i < gs.cars.length; i++) {
             const car = gs.cars[i];
             const bot = gs.bots[i - 1];
             if (!car || !bot || !car.active) continue;
-            if (Math.random() < 0.02) {
-              car.laneOffset += (Math.random() - 0.5) * 0.08;
-              car.laneOffset = Math.max(-LANE_CLAMP, Math.min(LANE_CLAMP, car.laneOffset));
-            }
+            let skillScale = 1;
+            if (playerLaps > avgBotLaps + 0.5) skillScale = 1 + Math.min(0.3, (playerLaps - avgBotLaps) * 0.1);
+            if (playerLaps < avgBotLaps - 0.5) skillScale = 1 - Math.min(0.3, (avgBotLaps - playerLaps) * 0.1);
+            const effectiveSkill = Math.min(0.95, bot.skill * skillScale);
             if (mode === 'math') {
-              if (Math.random() < bot.skill) {
+              if (Math.random() < effectiveSkill) {
                 car.fuel = Math.min(100, car.fuel + FUEL_PER_CORRECT * (0.4 + Math.random() * 0.6));
               } else {
                 car.damage = Math.min(MAX_DAMAGE, car.damage + DAMAGE_PER_WRONG * (0.3 + Math.random() * 0.4));
               }
             } else {
-              if (Math.random() < bot.skill) {
+              if (Math.random() < effectiveSkill) {
                 car.fuel = Math.min(100, car.fuel + 2 + Math.random() * 3);
               } else {
                 car.damage = Math.min(MAX_DAMAGE, car.damage + DAMAGE_PER_TYPING_MISTAKE * (0.5 + Math.random() * 0.5));
               }
             }
           }
+
+          // Move cars
           for (const car of gs.cars) {
             if (!car.active) continue;
             let speed = RACE_BASE_SPEED + (car.fuel / 100) * FUEL_SPEED_BONUS;
@@ -773,90 +798,178 @@
             }
             if (car.damage >= MAX_DAMAGE) { car.active = false; car.finishTime = null; }
           }
-          if (gs.cars.every(c => !c.active) || gs.cars.filter(c => c.active).length === 0) {
-            gs.finished = true;
+          if (gs.cars.every(c => !c.active)) gs.finished = true;
+
+          // Power-ups (math only)
+          if (mode === 'math') {
+            spawnPowerup();
+            for (let i = gs.powerups.length - 1; i >= 0; i--) {
+              const pu = gs.powerups[i];
+              pu.life -= dt * 0.15;
+              if (pu.life <= 0) { gs.powerups.splice(i, 1); continue; }
+              if (playerCar && playerCar.active) {
+                const pAngle = playerCar.progress * Math.PI * 2;
+                let diff = pAngle - pu.t;
+                if (diff > Math.PI) diff -= Math.PI * 2;
+                if (diff < -Math.PI) diff += Math.PI * 2;
+                if (Math.abs(diff) < 0.15 && Math.abs(playerCar.laneOffset) < 0.3) {
+                  const puType = pu.type;
+                  gs.powerups.splice(i, 1);
+                  if (puType.type === 'fuel') { playerCar.fuel = Math.min(100, playerCar.fuel + puType.effect); }
+                  else if (puType.type === 'shield') { hasShieldRef.current = true; }
+                  else if (puType.type === 'coin') { addCoins(puType.effect); }
+                }
+              }
+            }
+          }
+
+          // Speed particles
+          for (const car of gs.cars) {
+            if (!car.active || car.speed < 0.15) continue;
+            const t = car.progress * Math.PI * 2;
+            const base = lemniscatePos(t, scale);
+            const angle = lemniscateAngle(t);
+            const nAngle = lemniscateNormal(t);
+            const offDist = car.laneOffset * trackW * 0.3;
+            const px = (W / 2) + base.x + Math.cos(nAngle) * offDist;
+            const py = (H / 2) + base.y + Math.sin(nAngle) * offDist;
+            const backAngle = angle + Math.PI;
+            if (Math.random() < car.speed * 0.4) {
+              gs.particles.push({
+                x: px + Math.cos(backAngle) * 8,
+                y: py + Math.sin(backAngle) * 8,
+                vx: Math.cos(backAngle + (Math.random() - 0.5) * 0.5) * (0.3 + Math.random() * 0.5),
+                vy: Math.sin(backAngle + (Math.random() - 0.5) * 0.5) * (0.3 + Math.random() * 0.5),
+                life: 0.3 + Math.random() * 0.4,
+                maxLife: 0.3 + Math.random() * 0.4,
+                color: car.color,
+                size: 1.5 + Math.random() * 2,
+              });
+            }
+          }
+          for (let i = gs.particles.length - 1; i >= 0; i--) {
+            const p = gs.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= dt;
+            if (p.life <= 0) gs.particles.splice(i, 1);
           }
         }
 
-        // ── Render Infinity Track ──
-        const cx = W / 2;
-        const cy = H / 2;
+        // ── Render ──
+        const cx = W / 2, cy = H / 2;
 
         ctx.clearRect(0, 0, W, H);
-        ctx.fillStyle = '#0d1117';
+
+        // Sky / background
+        const nightAmt = Math.max(0, 1 - dayNight * 2);
+        const bgR = lerp(13, 5, nightAmt);
+        const bgG = lerp(17, 8, nightAmt);
+        const bgB = lerp(23, 18, nightAmt);
+        ctx.fillStyle = `rgb(${bgR},${bgG},${bgB})`;
         ctx.fillRect(0, 0, W, H);
 
-        // Draw track path
+        // Stars at night
+        if (nightAmt > 0.3) {
+          ctx.fillStyle = `rgba(255,255,255,${nightAmt * 0.5})`;
+          const starSeed = 12345;
+          for (let i = 0; i < 40; i++) {
+            const sx = ((i * 137 + starSeed) % W);
+            const sy = ((i * 97 + starSeed * 3) % (H * 0.6));
+            const ss = ((i * 11) % 3) + 1;
+            ctx.fillRect(sx, sy, ss, ss);
+          }
+        }
+
+        // Rain
+        if (gs.rainIntensity > 0.05) {
+          ctx.strokeStyle = `rgba(150,180,220,${gs.rainIntensity * 0.3})`;
+          ctx.lineWidth = 1;
+          for (let i = 0; i < 80 * gs.rainIntensity; i++) {
+            const rx = ((i * 293 + gs.timer * 200 * (1 + (i % 3) * 0.3)) % W);
+            const ry = ((i * 157 + gs.timer * 500 * (1 + (i % 2) * 0.2)) % H);
+            ctx.beginPath();
+            ctx.moveTo(rx, ry);
+            ctx.lineTo(rx - 2, ry + 12);
+            ctx.stroke();
+          }
+        }
+
+        // Track
         ctx.beginPath();
         for (let i = 0; i <= 200; i++) {
           const t = (i / 200) * Math.PI * 2;
           const p = lemniscatePos(t, scale);
-          const px = cx + p.x;
-          const py = cy + p.y;
-          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          i === 0 ? ctx.moveTo(cx + p.x, cy + p.y) : ctx.lineTo(cx + p.x, cy + p.y);
         }
         ctx.closePath();
-        ctx.strokeStyle = '#3a3a5c';
+        const trackR = lerp(42, 30, nightAmt);
+        const trackG = lerp(42, 25, nightAmt);
+        const trackB = lerp(70, 40, nightAmt);
+        ctx.strokeStyle = `rgb(${trackR},${trackG},${trackB})`;
         ctx.lineWidth = trackW;
         ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         ctx.stroke();
 
-        // Inner edge
-        ctx.beginPath();
-        for (let i = 0; i <= 200; i++) {
-          const t = (i / 200) * Math.PI * 2;
-          const p = lemniscatePos(t, scale - trackW * 0.3);
-          const px = cx + p.x;
-          const py = cy + p.y;
-          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        // Track glow at night
+        if (nightAmt > 0.2) {
+          ctx.strokeStyle = `rgba(60,60,120,${nightAmt * 0.15})`;
+          ctx.lineWidth = trackW + 8;
+          ctx.stroke();
         }
-        ctx.closePath();
-        ctx.strokeStyle = '#4a4a6e';
-        ctx.lineWidth = 1;
-        ctx.stroke();
 
-        // Outer edge
-        ctx.beginPath();
-        for (let i = 0; i <= 200; i++) {
-          const t = (i / 200) * Math.PI * 2;
-          const p = lemniscatePos(t, scale + trackW * 0.3);
-          const px = cx + p.x;
-          const py = cy + p.y;
-          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        ctx.strokeStyle = '#5a5a7e';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Dashed center line
+        // Center dashes
         ctx.beginPath();
         for (let i = 0; i <= 200; i++) {
           const t = (i / 200) * Math.PI * 2;
           const p = lemniscatePos(t, scale);
-          const px = cx + p.x;
-          const py = cy + p.y;
-          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          i === 0 ? ctx.moveTo(cx + p.x, cy + p.y) : ctx.lineTo(cx + p.x, cy + p.y);
         }
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.strokeStyle = `rgba(255,255,255,${lerp(0.08, 0.04, nightAmt)})`;
         ctx.lineWidth = 1.5;
-        ctx.setLineDash([8, 10]);
+        ctx.setLineDash([8, 12]);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Start/finish line at t = 0 (center crossing)
-        const sfP = lemniscatePos(0, scale);
-        const sfAngle = lemniscateNormal(0);
-        for (let j = -6; j <= 6; j++) {
-          const off = (j / 6) * trackW * 0.35;
-          const sx = cx + sfP.x + Math.cos(sfAngle) * off;
-          const sy = cy + sfP.y + Math.sin(sfAngle) * off;
-          ctx.fillStyle = j % 2 === 0 ? '#fff' : '#111';
-          ctx.fillRect(sx - 1.5, sy - trackW * 0.15, 3, trackW * 0.3);
+        // Start/finish line
+        {
+          const sfP = lemniscatePos(0, scale);
+          const sfAngle = lemniscateNormal(0);
+          for (let j = -6; j <= 6; j++) {
+            const off = (j / 6) * trackW * 0.35;
+            const sx = cx + sfP.x + Math.cos(sfAngle) * off;
+            const sy = cy + sfP.y + Math.sin(sfAngle) * off;
+            ctx.fillStyle = j % 2 === 0 ? '#fff' : '#111';
+            ctx.fillRect(sx - 1.5, sy - trackW * 0.15, 3, trackW * 0.3);
+          }
         }
 
-        // Draw cars
+        // Power-ups on track (math mode only)
+        if (mode === 'math') {
+          for (const pu of gs.powerups) {
+            const pos = lemniscatePos(pu.t, scale);
+            const px = cx + pos.x;
+            const py = cy + pos.y;
+            const pulse = 1 + Math.sin(gs.timer * 4 + pu.t) * 0.15;
+            const r = 7 * pulse;
+            ctx.beginPath();
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+            ctx.fillStyle = pu.type.color;
+            ctx.shadowColor = pu.type.color;
+            ctx.shadowBlur = 8;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff';
+            ctx.font = '6px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(pu.type.label, px, py);
+          }
+        }
+
+        // Cars
         const carW = trackW * 0.4;
         const carH = trackW * 0.22;
         for (const car of gs.cars) {
@@ -873,8 +986,7 @@
           ctx.translate(carX, carY);
           ctx.rotate(angle + Math.PI / 2);
 
-          // Car shadow
-          ctx.shadowColor = 'rgba(0,0,0,0.6)';
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
           ctx.shadowBlur = 6;
           ctx.fillStyle = car.color;
           ctx.beginPath();
@@ -882,44 +994,55 @@
           ctx.fill();
           ctx.shadowBlur = 0;
 
-          // Highlight
-          const grad = ctx.createLinearGradient(0, -carH / 2, 0, carH / 2);
-          grad.addColorStop(0, 'rgba(255,255,255,0.25)');
-          grad.addColorStop(0.5, 'rgba(255,255,255,0)');
-          grad.addColorStop(1, 'rgba(0,0,0,0.2)');
-          ctx.fillStyle = grad;
+          const hlGrad = ctx.createLinearGradient(0, -carH / 2, 0, carH / 2);
+          hlGrad.addColorStop(0, 'rgba(255,255,255,0.2)');
+          hlGrad.addColorStop(0.5, 'rgba(255,255,255,0.02)');
+          hlGrad.addColorStop(1, 'rgba(0,0,0,0.15)');
+          ctx.fillStyle = hlGrad;
           ctx.beginPath();
           ctx.roundRect(-carW / 2, -carH / 2, carW, carH, 3);
           ctx.fill();
 
-          // Outline
-          ctx.strokeStyle = car.isPlayer ? '#f0f6fc' : 'rgba(255,255,255,0.2)';
+          ctx.strokeStyle = car.isPlayer ? '#f0f6fc' : 'rgba(255,255,255,0.15)';
           ctx.lineWidth = car.isPlayer ? 2 : 1;
           ctx.beginPath();
           ctx.roundRect(-carW / 2, -carH / 2, carW, carH, 3);
           ctx.stroke();
 
+          if (car.isPlayer && hasShieldRef.current) {
+            ctx.strokeStyle = 'rgba(88,166,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(-carW / 2 - 3, -carH / 2 - 3, carW + 6, carH + 6, 5);
+            ctx.stroke();
+          }
+
           if (car.isPlayer) {
             ctx.fillStyle = '#f1c40f';
             ctx.beginPath();
-            ctx.arc(0, -carH / 2 - 4, 3.5, 0, Math.PI * 2);
+            ctx.arc(0, -carH / 2 - 4, 3, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 6px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('P', 0, -carH / 2 - 4);
           }
 
           ctx.restore();
 
-          // Name
           ctx.fillStyle = car.isPlayer ? '#f0f6fc' : '#8b949e';
-          ctx.font = '10px sans-serif';
+          ctx.font = 'bold 9px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'top';
-          ctx.fillText(car.name, carX, carY + carH / 2 + 4);
+          ctx.fillText(car.name, carX, carY + carH / 2 + 3);
         }
+
+        // Particles
+        for (const p of gs.particles) {
+          const alpha = p.life / p.maxLife;
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
 
         // Update UI state
         if (gs.cars[0]) {
@@ -929,12 +1052,13 @@
             .map(c => ({ name: c.name, laps: c.laps, color: c.color, isPlayer: c.isPlayer, finished: !c.active }));
           setUiState(prev => ({
             ...prev, playerFuel: p.fuel, playerDamage: p.damage, playerLaps: p.laps, playerSpeed: p.speed,
-            standings, winner: gs.winner, boostReady: gs.boostReady,
+            standings, winner: gs.winner, boostReady: gs.boostReady, combo: gs.combo,
+            difficultyLevel: gs.difficultyLevel, hasShield: hasShieldRef.current,
           }));
         }
 
         animRef.current = requestAnimationFrame(gameLoop);
-      }, [mode, account]);
+      }, [mode, account, addCoins]);
 
       useEffect(() => {
         initRace();
@@ -965,22 +1089,25 @@
 
       return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#0d1117' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: '#161b22', borderBottom: '1px solid #30363d' }}>
-            <span style={{ color: '#8b949e', fontSize: 13 }}>
-              {mode === 'math' ? 'Math Mode' : 'Typing Mode'}
-            </span>
-            <span style={{ color: '#f0f6fc', fontWeight: 700, fontSize: 15 }}>
-              Lap {Math.min(uiState.playerLaps + 1, LAPS_TO_WIN)} / {LAPS_TO_WIN}
-            </span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 16px', background: '#161b22', borderBottom: '1px solid #30363d', minHeight: 40 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span style={{ color: '#8b949e', fontSize: 13 }}>{mode === 'math' ? 'Math' : 'Typing'}</span>
+              <span style={{ color: '#58a6ff', fontSize: 12, fontWeight: 600 }}>Lv.{uiState.difficultyLevel}</span>
+              {uiState.combo > 1 && (
+                <span style={{ color: '#f1c40f', fontSize: 12, fontWeight: 700 }}>x{uiState.combo} combo</span>
+              )}
+              {uiState.hasShield && (
+                <span style={{ color: '#58a6ff', fontSize: 12, fontWeight: 700 }}>SHIELD</span>
+              )}
+            </div>
+            <span style={{ color: '#f0f6fc', fontWeight: 700, fontSize: 14 }}>Lap {Math.min(uiState.playerLaps + 1, LAPS_TO_WIN)} / {LAPS_TO_WIN}</span>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {uiState.boostReady && (
-                <span style={{ color: '#f1c40f', fontSize: 12, fontWeight: 700, background: 'rgba(241,196,15,0.15)', padding: '4px 10px', borderRadius: 4, border: '1px solid #f1c40f' }}>
-                  BOOST READY
+                <span style={{ color: '#f1c40f', fontSize: 11, fontWeight: 700, background: 'rgba(241,196,15,0.15)', padding: '3px 8px', borderRadius: 4, border: '1px solid #f1c40f' }}>
+                  BOOST
                 </span>
               )}
-              <button onClick={onFinish} style={{ padding: '6px 16px', borderRadius: 6, background: '#21262d', color: '#e6edf3', fontSize: 13, border: '1px solid #30363d' }}>
-                Quit
-              </button>
+              <button onClick={onFinish} style={{ padding: '4px 14px', borderRadius: 6, background: '#21262d', color: '#e6edf3', fontSize: 12, border: '1px solid #30363d' }}>Quit</button>
             </div>
           </div>
 
@@ -990,54 +1117,7 @@
 
               {uiState.phase === 'countdown' && uiState.countdown > 0 && (
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)' }}>
-                  <span style={{ fontSize: 96, fontWeight: 900, color: uiState.countdown <= 1 ? '#f1c40f' : '#f0f6fc' }}>
-                    {uiState.countdown}
-                  </span>
-                </div>
-              )}
-
-              {uiState.question && uiState.phase === 'racing' && (
-                <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#161b22', borderRadius: 10, padding: '16px 24px', border: '1px solid #30363d', textAlign: 'center', minWidth: 280 }}>
-                  <p style={{ color: '#f0f6fc', fontSize: 22, fontWeight: 700, marginBottom: 12 }}>{uiState.question.text}</p>
-                  <form onSubmit={e => { e.preventDefault(); handleMathAnswer(answer); }}>
-                    <input
-                      ref={inputRef}
-                      value={answer}
-                      onChange={e => setAnswer(e.target.value)}
-                      style={{ width: 120, padding: '8px 12px', borderRadius: 6, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 18, textAlign: 'center' }}
-                      placeholder="?"
-                      autoFocus
-                    />
-                    <button type="submit" style={{ marginLeft: 8, padding: '8px 16px', borderRadius: 6, background: '#238636', color: '#fff', fontSize: 14, fontWeight: 600 }}>
-                      Go
-                    </button>
-                  </form>
-                  <p style={{ color: '#8b949e', fontSize: 11, marginTop: 8 }}>Press E to use boost before answering</p>
-                </div>
-              )}
-
-              {uiState.typingState && uiState.phase === 'racing' && (
-                <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#161b22', borderRadius: 10, padding: '16px 24px', border: '1px solid #30363d', textAlign: 'center', minWidth: 360, maxWidth: 500 }}>
-                  <p style={{ color: '#8b949e', fontSize: 14, marginBottom: 8 }}>Type the passage:</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center', marginBottom: 12 }}>
-                    {uiState.typingState.words.map((word, i) => (
-                      <span key={i} style={{
-                        padding: '2px 6px', borderRadius: 4, fontSize: 16, fontWeight: 600,
-                        color: i < uiState.typingState.currentWordIdx ? '#238636' : i === uiState.typingState.currentWordIdx ? '#f0f6fc' : '#484f58',
-                        background: i === uiState.typingState.currentWordIdx ? 'rgba(35,134,54,0.15)' : 'transparent',
-                      }}>{word}</span>
-                    ))}
-                  </div>
-                  <input
-                    ref={inputRef}
-                    value={typingInput}
-                    onChange={e => handleTypingInput(e.target.value)}
-                    onKeyDown={handleTypingKey}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 16 }}
-                    placeholder="Type here..."
-                    autoFocus
-                  />
-                  <p style={{ color: '#8b949e', fontSize: 11, marginTop: 8 }}>Press Tab to use boost before typing</p>
+                  <span style={{ fontSize: 96, fontWeight: 900, color: uiState.countdown <= 1 ? '#f1c40f' : '#f0f6fc' }}>{uiState.countdown}</span>
                 </div>
               )}
 
@@ -1050,112 +1130,113 @@
                     {currentStandings.findIndex(s => s.isPlayer) + 1}
                     {['st','nd','rd','th'][Math.min(currentStandings.findIndex(s => s.isPlayer), 3)]} place
                   </p>
-                  <button onClick={handleFinish} style={{ padding: '12px 32px', borderRadius: 8, background: '#238636', color: '#fff', fontSize: 16, fontWeight: 700 }}>
-                    Finish
-                  </button>
+                  <button onClick={handleFinish} style={{ padding: '12px 32px', borderRadius: 8, background: '#238636', color: '#fff', fontSize: 16, fontWeight: 700 }}>Finish</button>
                 </div>
               )}
             </div>
 
-            <div style={{ width: 210, background: '#161b22', borderLeft: '1px solid #30363d', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #30363d' }}>
-                <p style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Your Car</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: '#8b949e' }}>Fuel</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: uiState.playerFuel > 50 ? '#39d152' : uiState.playerFuel > 20 ? '#f1c40f' : '#f85149' }}>
-                    {Math.round(uiState.playerFuel)}%
-                  </span>
+            <div style={{ width: 180, background: '#161b22', borderLeft: '1px solid #30363d', padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ background: '#0d1117', borderRadius: 8, padding: 10, border: '1px solid #30363d' }}>
+                <p style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Car</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                  <span style={{ fontSize: 11, color: '#8b949e' }}>Fuel</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: uiState.playerFuel > 50 ? '#39d152' : uiState.playerFuel > 20 ? '#f1c40f' : '#f85149' }}>{Math.round(uiState.playerFuel)}%</span>
                 </div>
-                <div style={{ height: 4, background: '#21262d', borderRadius: 2, marginBottom: 8 }}>
+                <div style={{ height: 3, background: '#21262d', borderRadius: 2, marginBottom: 6 }}>
                   <div style={{ width: `${uiState.playerFuel}%`, height: '100%', background: uiState.playerFuel > 50 ? '#39d152' : uiState.playerFuel > 20 ? '#f1c40f' : '#f85149', borderRadius: 2 }} />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: '#8b949e' }}>Damage</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: uiState.playerDamage > 50 ? '#f85149' : uiState.playerDamage > 20 ? '#f1c40f' : '#8b949e' }}>
-                    {Math.round(uiState.playerDamage)}%
-                  </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                  <span style={{ fontSize: 11, color: '#8b949e' }}>Damage</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: uiState.playerDamage > 50 ? '#f85149' : uiState.playerDamage > 20 ? '#f1c40f' : '#8b949e' }}>{Math.round(uiState.playerDamage)}%</span>
                 </div>
-                <div style={{ height: 4, background: '#21262d', borderRadius: 2 }}>
+                <div style={{ height: 3, background: '#21262d', borderRadius: 2 }}>
                   <div style={{ width: `${uiState.playerDamage}%`, height: '100%', background: uiState.playerDamage > 50 ? '#f85149' : uiState.playerDamage > 20 ? '#f1c40f' : '#484f58', borderRadius: 2 }} />
                 </div>
               </div>
 
-              <div style={{ background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #30363d' }}>
-                <p style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Controls</p>
-                <div style={{ fontSize: 11, color: '#8b949e', lineHeight: 1.7 }}>
-                  <div>A/← — Left &nbsp; D/→ — Right</div>
-                  <div>{mode === 'math' ? 'E — Boost' : 'Tab — Boost'}</div>
+              {mode === 'math' && (
+                <div style={{ background: '#0d1117', borderRadius: 8, padding: 10, border: '1px solid #30363d' }}>
+                  <p style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Controls</p>
+                  <div style={{ fontSize: 10, color: '#8b949e', lineHeight: 1.6 }}>
+                    <div>A/← — Left</div>
+                    <div>D/→ — Right</div>
+                    <div>E — Boost</div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div style={{ flex: 1, background: '#0d1117', borderRadius: 8, padding: 12, border: '1px solid #30363d', overflow: 'auto' }}>
-                <p style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Standings</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ flex: 1, background: '#0d1117', borderRadius: 8, padding: 10, border: '1px solid #30363d', overflow: 'auto' }}>
+                <p style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Standings</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {currentStandings.map((s, i) => (
-                    <div key={s.name} style={{
-                      display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px',
-                      borderRadius: 4, background: s.isPlayer ? 'rgba(35,134,54,0.15)' : 'transparent',
-                    }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#484f58', width: 16 }}>{i + 1}</span>
-                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, border: '1px solid #30363d' }} />
-                      <span style={{ fontSize: 12, fontWeight: s.isPlayer ? 700 : 400, color: '#e6edf3', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {s.name}
-                      </span>
-                      <span style={{ fontSize: 11, color: '#8b949e' }}>L{s.laps}</span>
+                    <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 5px', borderRadius: 3, background: s.isPlayer ? 'rgba(35,134,54,0.15)' : 'transparent' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#484f58', width: 14 }}>{i + 1}</span>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, border: '1px solid #30363d' }} />
+                      <span style={{ fontSize: 11, fontWeight: s.isPlayer ? 700 : 400, color: '#e6edf3', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+                      <span style={{ fontSize: 10, color: '#8b949e' }}>L{s.laps}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Bottom input panel */}
+          <div style={{ background: '#161b22', borderTop: '1px solid #30363d', padding: '10px 20px', minHeight: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {mode === 'math' ? (
+              uiState.question ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ color: '#f0f6fc', fontSize: 24, fontWeight: 700 }}>{uiState.question.text}</span>
+                  <form onSubmit={e => { e.preventDefault(); handleMathAnswer(answer); }} style={{ display: 'flex', gap: 8 }}>
+                    <input ref={inputRef} value={answer} onChange={e => setAnswer(e.target.value)} style={{ width: 100, padding: '8px 12px', borderRadius: 6, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 20, textAlign: 'center' }} placeholder="?" autoFocus />
+                    <button type="submit" style={{ padding: '8px 20px', borderRadius: 6, background: '#238636', color: '#fff', fontSize: 15, fontWeight: 600 }}>Go</button>
+                  </form>
+                  {uiState.boostReady && <span style={{ color: '#f1c40f', fontSize: 12, fontWeight: 700 }}>BOOST ARMED</span>}
+                </div>
+              ) : (
+                <span style={{ color: '#8b949e', fontSize: 15 }}>Waiting for next question...</span>
+              )
+            ) : (
+              uiState.typingState ? (
+                <div style={{ width: '100%', maxWidth: 600, textAlign: 'center' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, justifyContent: 'center', marginBottom: 8 }}>
+                    {uiState.typingState.words.map((word, i) => (
+                      <span key={i} style={{ padding: '2px 5px', borderRadius: 3, fontSize: 15, fontWeight: 600, color: i < uiState.typingState.currentWordIdx ? '#238636' : i === uiState.typingState.currentWordIdx ? '#f0f6fc' : '#484f58', background: i === uiState.typingState.currentWordIdx ? 'rgba(35,134,54,0.15)' : 'transparent' }}>{word}</span>
+                    ))}
+                  </div>
+                  <input ref={inputRef} value={typingInput} onChange={e => handleTypingInput(e.target.value)} onKeyDown={handleTypingKey} style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3', fontSize: 16 }} placeholder="Type here..." autoFocus />
+                </div>
+              ) : (
+                <span style={{ color: '#8b949e', fontSize: 15 }}>Get ready to type...</span>
+              )
+            )}
+          </div>
         </div>
       );
     }
 
-    // GaragePage
+    // ─── Remaining Pages ──────────────────────────────────────
+
     function GaragePage({ onBack }) {
       const { account, refreshAccount } = useAuth();
       const [msg, setMsg] = useState('');
 
       function changeColor(hex) {
-        if (!account) return;
-        const username = getCurrentUsername();
-        if (!username) return;
-        updateAccount(username, (a) => { a.car.color = hex; return a; });
-        refreshAccount();
-        setMsg('Color changed!');
-        setTimeout(() => setMsg(''), 2000);
+        if (!account) return; const username = getCurrentUsername(); if (!username) return;
+        updateAccount(username, (a) => { a.car.color = hex; return a; }); refreshAccount(); setMsg('Color changed!'); setTimeout(() => setMsg(''), 2000);
       }
 
       function useFix(tier) {
-        if (!account) return;
-        const fix = FIXES.find(f => f.tier === tier);
-        if (!fix) return;
+        if (!account) return; const fix = FIXES.find(f => f.tier === tier); if (!fix) return;
         const key = `fix${tier.charAt(0).toUpperCase() + tier.slice(1)}`;
-        if (account.inventory[key] <= 0) {
-          setMsg(`No ${fix.name} available!`);
-          setTimeout(() => setMsg(''), 2000);
-          return;
-        }
-        if (account.car.damage <= 0) {
-          setMsg('Car already has no damage!');
-          setTimeout(() => setMsg(''), 2000);
-          return;
-        }
-        const username = getCurrentUsername();
-        if (!username) return;
-        updateAccount(username, (a) => {
-          a.inventory[key] -= 1;
-          a.car.damage = Math.max(0, a.car.damage - fix.repairAmount);
-          return a;
-        });
-        refreshAccount();
-        setMsg(`Used ${fix.name}! Repaired ${fix.repairAmount} damage.`);
-        setTimeout(() => setMsg(''), 2000);
+        if (account.inventory[key] <= 0) { setMsg(`No ${fix.name} available!`); setTimeout(() => setMsg(''), 2000); return; }
+        if (account.car.damage <= 0) { setMsg('Car already has no damage!'); setTimeout(() => setMsg(''), 2000); return; }
+        const username = getCurrentUsername(); if (!username) return;
+        updateAccount(username, (a) => { a.inventory[key] -= 1; a.car.damage = Math.max(0, a.car.damage - fix.repairAmount); return a; });
+        refreshAccount(); setMsg(`Used ${fix.name}! Repaired ${fix.repairAmount} damage.`); setTimeout(() => setMsg(''), 2000);
       }
 
       if (!account) return null;
-
       return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #30363d' }}>
@@ -1169,28 +1250,17 @@
                 <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', width: 16, height: 8, background: '#f1c40f', borderRadius: '2px 2px 0 0' }} />
               </div>
               <p style={{ color: '#8b949e', fontSize: 13 }}>Damage: {Math.round(account.car.damage)}%</p>
-              <div style={{ height: 6, background: '#21262d', borderRadius: 3, marginTop: 6 }}>
-                <div style={{ width: `${account.car.damage}%`, height: '100%', background: account.car.damage > 50 ? '#f85149' : account.car.damage > 20 ? '#f1c40f' : '#39d152', borderRadius: 3 }} />
-              </div>
+              <div style={{ height: 6, background: '#21262d', borderRadius: 3, marginTop: 6 }}><div style={{ width: `${account.car.damage}%`, height: '100%', background: account.car.damage > 50 ? '#f85149' : account.car.damage > 20 ? '#f1c40f' : '#39d152', borderRadius: 3 }} /></div>
             </div>
             <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d', marginBottom: 20 }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 12 }}>Repairs</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {FIXES.map(fix => {
-                  const key = `fix${fix.tier.charAt(0).toUpperCase() + fix.tier.slice(1)}`;
-                  const count = account.inventory[key];
+                  const key = `fix${fix.tier.charAt(0).toUpperCase() + fix.tier.slice(1)}`; const count = account.inventory[key];
                   return (
                     <div key={fix.tier} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0d1117', borderRadius: 8, border: '1px solid #30363d' }}>
-                      <div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{fix.name}</p>
-                        <p style={{ fontSize: 12, color: '#8b949e' }}>{fix.desc} (owned: {count})</p>
-                      </div>
-                      <button onClick={() => useFix(fix.tier)} disabled={count <= 0 || account.car.damage <= 0} style={{
-                        padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600,
-                        background: count > 0 && account.car.damage > 0 ? '#238636' : '#21262d',
-                        color: count > 0 && account.car.damage > 0 ? '#fff' : '#484f58',
-                        border: '1px solid #30363d',
-                      }}>Use</button>
+                      <div><p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{fix.name}</p><p style={{ fontSize: 12, color: '#8b949e' }}>{fix.desc} (owned: {count})</p></div>
+                      <button onClick={() => useFix(fix.tier)} disabled={count <= 0 || account.car.damage <= 0} style={{ padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600, background: count > 0 && account.car.damage > 0 ? '#238636' : '#21262d', color: count > 0 && account.car.damage > 0 ? '#fff' : '#484f58', border: '1px solid #30363d' }}>Use</button>
                     </div>
                   );
                 })}
@@ -1200,16 +1270,9 @@
               <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 12 }}>Colors</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                 {CAR_COLORS.map(c => {
-                  const unlocked = account.unlockedColors.includes(c.hex);
-                  const isCurrent = account.car.color === c.hex;
+                  const unlocked = account.unlockedColors.includes(c.hex); const isCurrent = account.car.color === c.hex;
                   return (
-                    <button key={c.hex} onClick={() => unlocked && changeColor(c.hex)} disabled={!unlocked || isCurrent} style={{
-                      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-                      borderRadius: 8, background: isCurrent ? 'rgba(35,134,54,0.2)' : '#0d1117',
-                      border: isCurrent ? '1px solid #238636' : '1px solid #30363d',
-                      cursor: unlocked && !isCurrent ? 'pointer' : 'default',
-                      opacity: unlocked ? 1 : 0.5,
-                    }}>
+                    <button key={c.hex} onClick={() => unlocked && changeColor(c.hex)} disabled={!unlocked || isCurrent} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: isCurrent ? 'rgba(35,134,54,0.2)' : '#0d1117', border: isCurrent ? '1px solid #238636' : '1px solid #30363d', cursor: unlocked && !isCurrent ? 'pointer' : 'default', opacity: unlocked ? 1 : 0.5 }}>
                       <span style={{ width: 24, height: 24, borderRadius: '50%', background: c.hex, border: '2px solid #30363d' }} />
                       <span style={{ fontSize: 13, fontWeight: 600, color: isCurrent ? '#39d152' : '#e6edf3' }}>{c.name}{!unlocked && ` (${c.cost}c)`}{isCurrent && ' (current)'}</span>
                     </button>
@@ -1222,53 +1285,32 @@
       );
     }
 
-    // ShopPage
     function ShopPage({ onBack }) {
       const { account, refreshAccount } = useAuth();
       const [msg, setMsg] = useState('');
 
       function buyBoost(tier) {
-        if (!account) return;
-        const boost = BOOSTS.find(b => b.tier === tier);
-        if (!boost) return;
+        if (!account) return; const boost = BOOSTS.find(b => b.tier === tier); if (!boost) return;
         if (account.coins < boost.cost) { setMsg('Not enough coins!'); setTimeout(() => setMsg(''), 2000); return; }
-        const key = `boost${tier.charAt(0).toUpperCase() + tier.slice(1)}`;
-        const username = getCurrentUsername();
-        if (!username) return;
-        updateAccount(username, (a) => { a.coins -= boost.cost; a.inventory[key] += 1; return a; });
-        refreshAccount();
-        setMsg(`Bought ${boost.name}!`);
-        setTimeout(() => setMsg(''), 2000);
+        const key = `boost${tier.charAt(0).toUpperCase() + tier.slice(1)}`; const username = getCurrentUsername(); if (!username) return;
+        updateAccount(username, (a) => { a.coins -= boost.cost; a.inventory[key] += 1; return a; }); refreshAccount(); setMsg(`Bought ${boost.name}!`); setTimeout(() => setMsg(''), 2000);
       }
 
       function buyFix(tier) {
-        if (!account) return;
-        const fix = FIXES.find(f => f.tier === tier);
-        if (!fix) return;
+        if (!account) return; const fix = FIXES.find(f => f.tier === tier); if (!fix) return;
         if (account.coins < fix.cost) { setMsg('Not enough coins!'); setTimeout(() => setMsg(''), 2000); return; }
-        const key = `fix${tier.charAt(0).toUpperCase() + tier.slice(1)}`;
-        const username = getCurrentUsername();
-        if (!username) return;
-        updateAccount(username, (a) => { a.coins -= fix.cost; a.inventory[key] += 1; return a; });
-        refreshAccount();
-        setMsg(`Bought ${fix.name}!`);
-        setTimeout(() => setMsg(''), 2000);
+        const key = `fix${tier.charAt(0).toUpperCase() + tier.slice(1)}`; const username = getCurrentUsername(); if (!username) return;
+        updateAccount(username, (a) => { a.coins -= fix.cost; a.inventory[key] += 1; return a; }); refreshAccount(); setMsg(`Bought ${fix.name}!`); setTimeout(() => setMsg(''), 2000);
       }
 
       function buyColor(hex, cost) {
-        if (!account) return;
-        if (account.unlockedColors.includes(hex)) { setMsg('Already owned!'); setTimeout(() => setMsg(''), 2000); return; }
+        if (!account) return; if (account.unlockedColors.includes(hex)) { setMsg('Already owned!'); setTimeout(() => setMsg(''), 2000); return; }
         if (account.coins < cost) { setMsg('Not enough coins!'); setTimeout(() => setMsg(''), 2000); return; }
-        const username = getCurrentUsername();
-        if (!username) return;
-        updateAccount(username, (a) => { a.coins -= cost; a.unlockedColors.push(hex); return a; });
-        refreshAccount();
-        setMsg('Color unlocked!');
-        setTimeout(() => setMsg(''), 2000);
+        const username = getCurrentUsername(); if (!username) return;
+        updateAccount(username, (a) => { a.coins -= cost; a.unlockedColors.push(hex); return a; }); refreshAccount(); setMsg('Color unlocked!'); setTimeout(() => setMsg(''), 2000);
       }
 
       if (!account) return null;
-
       return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #30363d' }}>
@@ -1280,19 +1322,11 @@
             {msg && <p style={{ color: '#39d152', fontSize: 14, marginBottom: 16, textAlign: 'center' }}>{msg}</p>}
             <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d', marginBottom: 20 }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 8 }}>Boosts</h3>
-              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>More fuel in math mode, skip words in typing mode.</p>
+              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>Math: E to arm, then answer correctly. Typing: Tab to arm.</p>
               {BOOSTS.map(boost => (
                 <div key={boost.tier} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0d1117', borderRadius: 8, border: '1px solid #30363d', marginBottom: 8 }}>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{boost.name}</p>
-                    <p style={{ fontSize: 12, color: '#8b949e' }}>{boost.desc}</p>
-                  </div>
-                  <button onClick={() => buyBoost(boost.tier)} disabled={account.coins < boost.cost} style={{
-                    padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600,
-                    background: account.coins >= boost.cost ? '#238636' : '#21262d',
-                    color: account.coins >= boost.cost ? '#fff' : '#484f58',
-                    border: '1px solid #30363d',
-                  }}>{boost.cost}c</button>
+                  <div><p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{boost.name}</p><p style={{ fontSize: 12, color: '#8b949e' }}>{boost.desc}</p></div>
+                  <button onClick={() => buyBoost(boost.tier)} disabled={account.coins < boost.cost} style={{ padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600, background: account.coins >= boost.cost ? '#238636' : '#21262d', color: account.coins >= boost.cost ? '#fff' : '#484f58', border: '1px solid #30363d' }}>{boost.cost}c</button>
                 </div>
               ))}
             </div>
@@ -1301,32 +1335,19 @@
               <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>Fix car damage from wrong answers.</p>
               {FIXES.map(fix => (
                 <div key={fix.tier} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0d1117', borderRadius: 8, border: '1px solid #30363d', marginBottom: 8 }}>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{fix.name}</p>
-                    <p style={{ fontSize: 12, color: '#8b949e' }}>{fix.desc}</p>
-                  </div>
-                  <button onClick={() => buyFix(fix.tier)} disabled={account.coins < fix.cost} style={{
-                    padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600,
-                    background: account.coins >= fix.cost ? '#238636' : '#21262d',
-                    color: account.coins >= fix.cost ? '#fff' : '#484f58',
-                    border: '1px solid #30363d',
-                  }}>{fix.cost}c</button>
+                  <div><p style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{fix.name}</p><p style={{ fontSize: 12, color: '#8b949e' }}>{fix.desc}</p></div>
+                  <button onClick={() => buyFix(fix.tier)} disabled={account.coins < fix.cost} style={{ padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600, background: account.coins >= fix.cost ? '#238636' : '#21262d', color: account.coins >= fix.cost ? '#fff' : '#484f58', border: '1px solid #30363d' }}>{fix.cost}c</button>
                 </div>
               ))}
             </div>
             <div style={{ background: '#161b22', borderRadius: 10, padding: 16, border: '1px solid #30363d' }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f0f6fc', marginBottom: 8 }}>Car Colors</h3>
-              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>Customize your Indy 500 racer.</p>
+              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>Customize your racer.</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                 {CAR_COLORS.filter(c => c.cost > 0).map(c => {
                   const owned = account.unlockedColors.includes(c.hex);
                   return (
-                    <button key={c.hex} onClick={() => buyColor(c.hex, c.cost)} disabled={owned || account.coins < c.cost} style={{
-                      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-                      borderRadius: 8, background: '#0d1117',
-                      border: owned ? '1px solid #238636' : '1px solid #30363d',
-                      opacity: owned ? 0.6 : account.coins >= c.cost ? 1 : 0.4,
-                    }}>
+                    <button key={c.hex} onClick={() => buyColor(c.hex, c.cost)} disabled={owned || account.coins < c.cost} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: '#0d1117', border: owned ? '1px solid #238636' : '1px solid #30363d', opacity: owned ? 0.6 : account.coins >= c.cost ? 1 : 0.4 }}>
                       <span style={{ width: 24, height: 24, borderRadius: '50%', background: c.hex, border: '2px solid #30363d' }} />
                       <span style={{ fontSize: 13, fontWeight: 600, color: owned ? '#39d152' : '#e6edf3' }}>{owned ? 'Owned' : `${c.name} (${c.cost}c)`}</span>
                     </button>
@@ -1339,11 +1360,9 @@
       );
     }
 
-    // AchievementsPage
     function AchievementsPage({ onBack }) {
       const { account } = useAuth();
       if (!account) return null;
-
       return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #30363d' }}>
@@ -1356,21 +1375,9 @@
               {ACHIEVEMENTS.map(ach => {
                 const unlocked = account.achievements.includes(ach.id);
                 return (
-                  <div key={ach.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 10,
-                    background: unlocked ? 'rgba(35,134,54,0.1)' : '#161b22',
-                    border: unlocked ? '1px solid #238636' : '1px solid #30363d',
-                    opacity: unlocked ? 1 : 0.6,
-                  }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: '50%', background: unlocked ? '#238636' : '#21262d',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 16, fontWeight: 900, color: unlocked ? '#fff' : '#484f58', flexShrink: 0,
-                    }}>{unlocked ? ach.reward : '?'}</div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 15, fontWeight: 700, color: unlocked ? '#39d152' : '#e6edf3' }}>{ach.name}</p>
-                      <p style={{ fontSize: 13, color: '#8b949e' }}>{ach.desc}</p>
-                    </div>
+                  <div key={ach.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 10, background: unlocked ? 'rgba(35,134,54,0.1)' : '#161b22', border: unlocked ? '1px solid #238636' : '1px solid #30363d', opacity: unlocked ? 1 : 0.6 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: unlocked ? '#238636' : '#21262d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 900, color: unlocked ? '#fff' : '#484f58', flexShrink: 0 }}>{unlocked ? ach.reward : '?'}</div>
+                    <div style={{ flex: 1 }}><p style={{ fontSize: 15, fontWeight: 700, color: unlocked ? '#39d152' : '#e6edf3' }}>{ach.name}</p><p style={{ fontSize: 13, color: '#8b949e' }}>{ach.desc}</p></div>
                     <span style={{ fontSize: 13, fontWeight: 700, color: unlocked ? '#f1c40f' : '#484f58' }}>{unlocked ? `+${ach.reward}c` : `${ach.reward}c`}</span>
                   </div>
                 );
@@ -1388,7 +1395,6 @@
       const [raceMode, setRaceMode] = useState('math');
 
       if (!account) return <LoginPage />;
-
       switch (screen) {
         case 'menu': return <MenuPage onNavigate={setScreen} />;
         case 'lobby': return <LobbyPage mode={raceMode} setMode={setRaceMode} onStart={() => setScreen('race')} onBack={() => setScreen('menu')} />;
@@ -1399,11 +1405,8 @@
       }
     }
 
-    // ─── Entry point ──────────────────────────────────────────
     createRoot(document.getElementById('root')).render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <AuthProvider><App /></AuthProvider>
     );
   </script>
 </body>
